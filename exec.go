@@ -35,12 +35,10 @@ func (s *state) errorf(format string, args ...interface{}) {
 	panic(fmt.Sprintf(format, args...))
 }
 
-func (s *state) exec() reflect.Value {
-	for _, node := range s.t.Nodes {
-		switch node.Type() {
-		case NodeCall:
-			return s.makeCall(node.(*CallNode))
-		}
+func (s *state) walkNode(n Node) reflect.Value {
+	switch n.Type() {
+	case NodeCall:
+		return s.makeCall(n.(*CallNode))
 	}
 
 	return zero
@@ -183,7 +181,9 @@ func Exec(output io.Writer, tree *ListNode, funcs map[string]interface{}) (err e
 	defer s.recover(&err)
 
 	// Start the execution
-	s.print(s.exec())
+	for _, n := range s.t.Nodes {
+		s.print(s.walkNode(n))
+	}
 
 	return nil
 }
