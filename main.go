@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 )
 
@@ -12,33 +10,25 @@ func main() {
 	flag.Parse()
 
 	if err := run(); err != nil {
-		log.Fatal(err)
+		fmt.Println("ERROR:", err)
 	}
 }
 
 func run() error {
+	// Open the file
 	f, err := os.Open(flag.Arg(0))
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	contents, err := ioutil.ReadAll(f)
+	// Parse it
+	_, err = Parse(f)
 	if err != nil {
 		return err
 	}
 
-	lexer := NewLexer(string(contents))
-
-	go func() {
-		for item := range lexer.items {
-			fmt.Println(item)
-		}
-	}()
-
-	for lexer.state != nil {
-		lexer.state = lexer.state(lexer)
-	}
+	fmt.Println("finished!")
 
 	return nil
 }

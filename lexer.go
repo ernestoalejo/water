@@ -9,6 +9,10 @@ import (
 
 const eof = -1
 
+type stateFn func(*lexer) stateFn
+
+// ========================================================
+
 type item struct {
 	t     itemType
 	value string
@@ -18,11 +22,14 @@ func (i item) String() string {
 	return fmt.Sprintf("%s => %s", i.t, i.value)
 }
 
+// ========================================================
+
 type itemType int
 
 func (i itemType) String() string {
-	if i == itemEOF {
-		return "EOF"
+	name, ok := itemNames[i]
+	if ok {
+		return name
 	}
 
 	return fmt.Sprintf("%d", int(i))
@@ -37,7 +44,16 @@ const (
 	itemNumber
 )
 
-type stateFn func(*lexer) stateFn
+var itemNames = map[itemType]string{
+	itemError:      "ERROR",
+	itemEOF:        "EOF",
+	itemLeftParen:  "(",
+	itemRightParen: ")",
+	itemOperator:   "operator",
+	itemNumber:     "number",
+}
+
+// ========================================================
 
 type lexer struct {
 	input             string
@@ -122,6 +138,13 @@ func (l *lexer) scanNumber() bool {
 	}
 
 	return true
+}
+
+func (l *lexer) emitItems() {
+	for l.state != nil {
+		l.state = l.state(l)
+	}
+	close(l.items)
 }
 
 func lexText(l *lexer) stateFn {
