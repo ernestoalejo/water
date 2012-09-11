@@ -23,12 +23,23 @@ func run() error {
 	defer f.Close()
 
 	// Parse it
-	_, err = Parse(f)
+	root, err := Parse(f)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("finished!")
+	funcs := initGlobalFuncs()
+
+	// Exec it
+	if err := Exec(os.Stdout, root, funcs); err != nil {
+		return err
+	}
 
 	return nil
+}
+
+func initGlobalFuncs() map[string]interface{} {
+	return map[string]interface{}{
+		"+": func(a, b int64) int64 { return a + b },
+	}
 }

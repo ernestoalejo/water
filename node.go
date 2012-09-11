@@ -41,14 +41,14 @@ func newList() *ListNode {
 type CallNode struct {
 	NodeType
 	Name string
-	Args   []Node
+	Args []Node
 }
 
 func newCall(name string) *CallNode {
 	return &CallNode{
 		NodeType: NodeCall,
-		Name: name,
-		Args: []Node{},
+		Name:     name,
+		Args:     []Node{},
 	}
 }
 
@@ -56,6 +56,7 @@ func newCall(name string) *CallNode {
 
 type NumberNode struct {
 	NodeType
+	Text string
 
 	IsInt, IsUint bool
 
@@ -66,6 +67,7 @@ type NumberNode struct {
 func newNumber(text string) (*NumberNode, error) {
 	n := &NumberNode{
 		NodeType: NodeNumber,
+		Text:     text,
 	}
 
 	u, err := strconv.ParseUint(text, 0, 64)

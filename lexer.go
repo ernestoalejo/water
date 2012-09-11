@@ -49,7 +49,7 @@ var itemNames = map[itemType]string{
 	itemEOF:        "EOF",
 	itemLeftParen:  "(",
 	itemRightParen: ")",
-	itemCall:   "call",
+	itemCall:       "call",
 	itemNumber:     "number",
 }
 

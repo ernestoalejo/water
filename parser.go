@@ -16,32 +16,6 @@ type parser struct {
 	stored bool
 }
 
-func Parse(r io.Reader) (p *parser, err error) {
-	contents, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
-
-	p = &parser{
-		Root: newList(),
-		lex:  NewLexer(string(contents)),
-	}
-
-	defer p.recover(&err)
-	go p.lex.emitItems()
-
-	for {
-		item := p.peek()
-		if item.t == itemEOF {
-			break
-		}
-
-		p.Root.Nodes = append(p.Root.Nodes, p.parseAction())
-	}
-
-	return
-}
-
 func (p *parser) expect(expected itemType, context string) item {
 	token := p.next()
 	if token.t != expected {
@@ -123,4 +97,32 @@ func (p *parser) recover(errp *error) {
 			panic(e)
 		}
 	}
+}
+
+func Parse(r io.Reader) (l *ListNode, err error) {
+	contents, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+
+	p := &parser{
+		Root: newList(),
+		lex:  NewLexer(string(contents)),
+	}
+
+	defer p.recover(&err)
+	go p.lex.emitItems()
+
+	for {
+		item := p.peek()
+		if item.t == itemEOF {
+			break
+		}
+
+		p.Root.Nodes = append(p.Root.Nodes, p.parseAction())
+	}
+
+	l = p.Root
+
+	return
 }
