@@ -40,7 +40,7 @@ const (
 	itemEOF
 	itemLeftParen
 	itemRightParen
-	itemOperator
+	itemCall
 	itemNumber
 )
 
@@ -49,7 +49,7 @@ var itemNames = map[itemType]string{
 	itemEOF:        "EOF",
 	itemLeftParen:  "(",
 	itemRightParen: ")",
-	itemOperator:   "operator",
+	itemCall:   "call",
 	itemNumber:     "number",
 }
 
@@ -184,10 +184,10 @@ func lexInsideParen(l *lexer) stateFn {
 	case isSpace(r):
 		l.ignore()
 
-	case r == '+':
+	case r == '+' || r == '-':
 		if c := l.peek(); isSpace(c) || c == ')' {
 			l.backup()
-			return lexOperator
+			return lexCall
 		}
 		fallthrough
 
@@ -205,9 +205,9 @@ func lexInsideParen(l *lexer) stateFn {
 	return lexInsideParen
 }
 
-func lexOperator(l *lexer) stateFn {
+func lexCall(l *lexer) stateFn {
 	l.next()
-	l.emit(itemOperator)
+	l.emit(itemCall)
 
 	return lexInsideParen
 }

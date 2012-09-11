@@ -81,27 +81,24 @@ func (p *parser) parseAction() Node {
 
 	token := p.peek()
 	switch token.t {
-	case itemOperator:
-		return p.parseOperator()
+	case itemCall:
+		return p.parseCall()
 	}
 
 	p.errorf("token not expected: %s", token)
 	return nil
 }
 
-func (p *parser) parseOperator() Node {
-	op := newOperator(p.next().value)
+func (p *parser) parseCall() Node {
+	c := newCall(p.next().value)
 	for {
 		switch p.peek().t {
 		case itemRightParen:
 			p.next()
-			if len(op.Values) == 0 {
-				p.errorf("values expected for the operator: %s", op.Operator)
-			}
-			return op
+			return c
 
 		case itemNumber:
-			op.Values = append(op.Values, p.parseNumber())
+			c.Args = append(c.Args, p.parseNumber())
 		}
 	}
 

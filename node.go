@@ -18,8 +18,8 @@ func (t NodeType) Type() NodeType {
 }
 
 const (
-	NodeOperator NodeType = iota
-	NodeList
+	NodeList NodeType = iota
+	NodeCall
 	NodeNumber
 )
 
@@ -38,16 +38,17 @@ func newList() *ListNode {
 
 // ========================================================
 
-type OperatorNode struct {
+type CallNode struct {
 	NodeType
-	Operator string
-	Values   []Node
+	Name string
+	Args   []Node
 }
 
-func newOperator(op string) *OperatorNode {
-	return &OperatorNode{
-		NodeType: NodeOperator,
-		Operator: op,
+func newCall(name string) *CallNode {
+	return &CallNode{
+		NodeType: NodeCall,
+		Name: name,
+		Args: []Node{},
 	}
 }
 
