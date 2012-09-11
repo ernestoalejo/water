@@ -126,7 +126,7 @@ func (l *lexer) acceptRun(valid string) {
 func (l *lexer) scanNumber() bool {
 	l.accept("+-")
 
-	digits := "01º23456789"
+	digits := "0123456789"
 	if l.accept("0") && l.accept("xX") {
 		digits += "abcdefABCDEF"
 	}
@@ -185,7 +185,7 @@ func lexInsideParen(l *lexer) stateFn {
 		l.ignore()
 
 	case r == '+':
-		if isSpace(l.peek()) {
+		if c := l.peek(); isSpace(c) || c == ')' {
 			l.backup()
 			return lexOperator
 		}
