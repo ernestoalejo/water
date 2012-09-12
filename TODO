@@ -2,4 +2,5 @@
  * Modulo operator.
  * Negation operator.
  * Implement the float64 operators for not-exact divisions.
+ * Add operator to join strings.
  * Line numbers in the error messages.
