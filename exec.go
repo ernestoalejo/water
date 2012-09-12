@@ -70,7 +70,11 @@ func (s *state) makeCall(n *CallNode) reflect.Value {
 	s.checkFuncReturn(n.Name, t)
 
 	// Prepare the arguments array
-	args := make([]reflect.Value, numArgs)
+	nargs := numArgs
+	if t.IsVariadic() {
+		nargs += len(n.Args) - nargs
+	}
+	args := make([]reflect.Value, nargs)
 
 	// Add the fixed arguments
 	i := 0
@@ -89,7 +93,7 @@ func (s *state) makeCall(n *CallNode) reflect.Value {
 	res := f.Call(args)
 
 	if len(res) == 2 && !res[1].IsNil() {
-		s.errorf("error calling %s: %s", n.Name, res[i].Interface().(error))
+		s.errorf("error calling %s: %s", n.Name, res[1].Interface().(error))
 	}
 
 	return res[0]
@@ -105,11 +109,13 @@ func (s *state) checkFuncReturn(name string, t reflect.Type) {
 }
 
 func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
+	// If the arg it's a subtree, execute it first
 	switch n.Type() {
 	case NodeCall:
 		return s.makeCall(n.(*CallNode))
 	}
 
+	// Return the correct value depending on the needed type
 	switch t.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if n, ok := n.(*NumberNode); ok && n.IsInt {
@@ -128,25 +134,28 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 		s.errorf("expected unsigned integer; found %s", n)
 
 	case reflect.Interface:
-		if t.NumMethod() == 0 {
-			s.evalEmptyInterface(t, n)
-		}
+		return s.evalEmptyInterface(t, n)
 	}
 
-	s.errorf("can't handle %s for arg of type %s", n, t)
+	// Can't handle that type of arguments
+	s.errorf("can't handle %+v for arg of type %s", n, t)
 	panic("not reached")
 }
 
 func (s *state) evalEmptyInterface(t reflect.Type, n Node) reflect.Value {
+	// Depending on the node type, try to guess the best arg
 	switch n := n.(type) {
 	case *NumberNode:
 		return s.idealConstant(n)
 	}
 
+	// Can't handle this kind of node
 	s.errorf("can't handle assignment of %s to empty interface argument", n)
 	panic("not reached")
 }
 
+// Try to parse nums as ideal constant. Note that an unsigned integer ideal
+// constant should be an integer one too.
 func (s *state) idealConstant(c *NumberNode) reflect.Value {
 	switch {
 	case c.IsInt:

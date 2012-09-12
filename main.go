@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/ernestokarim/water/globals"
 )
 
 func main() {
@@ -31,6 +33,7 @@ func run() error {
 		return err
 	}
 
+	// Start the global funcs
 	funcs := initGlobalFuncs()
 
 	log.Println(" * Exec the file...")
@@ -45,6 +48,6 @@ func run() error {
 
 func initGlobalFuncs() map[string]interface{} {
 	return map[string]interface{}{
-		"+": func(a, b int64) int64 { return a + b },
+		"+": globals.Plus,
 	}
 }
