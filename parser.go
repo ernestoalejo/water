@@ -77,6 +77,9 @@ func (p *parser) parseCall() Node {
 		case itemCall:
 			c.Args = append(c.Args, p.parseCall())
 
+		case itemString:
+			c.Args = append(c.Args, p.parseString())
+
 		case itemLeftParen:
 			p.next()
 
@@ -97,6 +100,11 @@ func (p *parser) parseNumber() Node {
 	}
 
 	return n
+}
+
+func (p *parser) parseString() Node {
+	item := p.expect(itemString, "string")
+	return newString(item.value)
 }
 
 func (p *parser) recover(errp *error) {

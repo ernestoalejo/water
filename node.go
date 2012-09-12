@@ -21,6 +21,7 @@ const (
 	NodeList NodeType = iota
 	NodeCall
 	NodeNumber
+	NodeString
 )
 
 // ========================================================
@@ -92,4 +93,18 @@ func newNumber(text string) (*NumberNode, error) {
 	}
 
 	return n, nil
+}
+
+// ========================================================
+
+type StringNode struct {
+	NodeType
+	Text string
+}
+
+func newString(text string) *StringNode {
+	return &StringNode{
+		NodeType: NodeString,
+		Text:     text,
+	}
 }
