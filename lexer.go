@@ -43,6 +43,8 @@ const (
 	itemCall
 	itemNumber
 	itemString
+	itemVar
+	itemDefine
 )
 
 var itemNames = map[itemType]string{
@@ -53,6 +55,8 @@ var itemNames = map[itemType]string{
 	itemCall:       "call",
 	itemNumber:     "number",
 	itemString:     "string",
+	itemVar:        "variable",
+	itemDefine:     "define",
 }
 
 // ========================================================
@@ -151,7 +155,7 @@ func (l *lexer) emitItems() {
 
 func lexLeftParen(l *lexer) stateFn {
 	l.emit(itemLeftParen)
-	return lexCode
+	return lexCall
 }
 
 func lexRightParen(l *lexer) stateFn {
@@ -176,7 +180,7 @@ func lexCode(l *lexer) stateFn {
 		}
 
 		l.backup()
-		return lexCall
+		return lexVar
 
 	case '0' <= r && r <= '9':
 		l.backup()
@@ -194,23 +198,45 @@ func lexCode(l *lexer) stateFn {
 
 	default:
 		l.backup()
-		return lexCall
+		return lexVar
 	}
 
 	panic("not reached")
 }
 
 func lexCall(l *lexer) stateFn {
+	// Ignore all the spaces before the function name
+	for {
+		r := l.next()
+		if !isSpace(r) {
+			l.backup()
+			break
+		}
+	}
+
+	if strings.HasPrefix(l.input[l.start:], "define") {
+		l.pos += len("define")
+		l.emit(itemDefine)
+		return lexCode
+	}
+
+	// Scan the name
 	r := l.next()
 	for r != ' ' && r != ')' {
 		r = l.next()
+
+		if r == eof {
+			return l.errorf("eof not expected inside a method call")
+		}
 	}
 	l.backup()
 
+	// If there's no name, it's an illegal call
 	if l.start == l.pos {
-		l.errorf("illegal function name")
+		return l.errorf("illegal function name")
 	}
 
+	// Emit the correct token
 	l.emit(itemCall)
 
 	return lexCode
@@ -238,6 +264,29 @@ func lexString(l *lexer) stateFn {
 	}
 
 	l.emit(itemString)
+	return lexCode
+}
+
+func lexVar(l *lexer) stateFn {
+	// Scan the name
+	r := l.next()
+	for r != ' ' && r != ')' {
+		r = l.next()
+
+		if r == eof {
+			return l.errorf("eof not expected inside a variable name")
+		}
+	}
+	l.backup()
+
+	// If there's no name, it's an illegal variable
+	if l.start == l.pos {
+		return l.errorf("illegal variable name")
+	}
+
+	// Emit the correct token
+	l.emit(itemVar)
+
 	return lexCode
 }
 

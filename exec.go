@@ -20,6 +20,7 @@ type state struct {
 	vars   variables
 	output io.Writer
 	t      *ListNode
+	outer  *state
 }
 
 func (s *state) recover(errp *error) {
