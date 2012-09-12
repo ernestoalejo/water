@@ -49,3 +49,23 @@ func Times(args ...interface{}) (interface{}, error) {
 func Divide(args ...interface{}) (interface{}, error) {
 	return op("divide", args)
 }
+
+func GreaterThan(a, b int) bool {
+	return a > b
+}
+
+func GreaterEqual(a, b int) bool {
+	return a >= b
+}
+
+func LessThan(a, b int) bool {
+	return a < b
+}
+
+func LessEqual(a, b int) bool {
+	return a <= b
+}
+
+func Equal(a, b interface{}) bool {
+	return a == b
+}

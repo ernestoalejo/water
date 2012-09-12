@@ -178,10 +178,6 @@ func lexCode(l *lexer) stateFn {
 		l.backup()
 		return lexNumber
 
-	case isAlphaNumeric(r) || isOperator(r):
-		l.backup()
-		return lexCall
-
 	case r == ')':
 		return lexRightParen
 
@@ -189,7 +185,8 @@ func lexCode(l *lexer) stateFn {
 		return lexLeftParen
 
 	default:
-		return l.errorf("unrecognized character in action: %#U", r)
+		l.backup()
+		return lexCall
 	}
 
 	panic("not reached")
@@ -197,12 +194,10 @@ func lexCode(l *lexer) stateFn {
 
 func lexCall(l *lexer) stateFn {
 	r := l.next()
-	if !isOperator(r) {
-		for isAlphaNumeric(r) {
-			r = l.next()
-		}
-		l.backup()
+	for r != ' ' && r != ')' {
+		r = l.next()
 	}
+	l.backup()
 
 	if l.start == l.pos {
 		l.errorf("illegal function name")
@@ -233,8 +228,4 @@ func isSpace(r rune) bool {
 
 func isAlphaNumeric(r rune) bool {
 	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
-}
-
-func isOperator(r rune) bool {
-	return r == '+' || r == '-' || r == '*' || r == '/'
 }
