@@ -181,6 +181,11 @@ func (s *state) idealConstant(c *NumberNode) reflect.Value {
 }
 
 func (s *state) print(v reflect.Value) {
+	if v.Kind() == reflect.String {
+		fmt.Fprint(s.output, v.Interface())
+		return
+	}
+
 	fmt.Fprintln(s.output, v.Interface())
 }
 

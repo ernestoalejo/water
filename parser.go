@@ -104,7 +104,13 @@ func (p *parser) parseNumber() Node {
 
 func (p *parser) parseString() Node {
 	item := p.expect(itemString, "string")
-	return newString(item.value)
+
+	n, err := newString(item.value)
+	if err != nil {
+		p.errorf("%s", err)
+	}
+
+	return n
 }
 
 func (p *parser) recover(errp *error) {

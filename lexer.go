@@ -170,10 +170,12 @@ func lexCode(l *lexer) stateFn {
 		return lexCode
 
 	case r == '+' || r == '-':
-		l.backup()
 		if c := l.peek(); '0' <= c && c <= '9' {
+			l.backup()
 			return lexNumber
 		}
+
+		l.backup()
 		return lexCall
 
 	case '0' <= r && r <= '9':
@@ -230,6 +232,8 @@ func lexString(l *lexer) stateFn {
 		r := l.next()
 		if r == delim {
 			break
+		} else if r == eof {
+			l.errorf("eof not expected inside a string")
 		}
 	}
 

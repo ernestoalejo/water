@@ -102,9 +102,16 @@ type StringNode struct {
 	Text string
 }
 
-func newString(text string) *StringNode {
-	return &StringNode{
+func newString(text string) (*StringNode, error) {
+	n := &StringNode{
 		NodeType: NodeString,
-		Text:     text,
 	}
+
+	var err error
+	n.Text, err = strconv.Unquote(text)
+	if err != nil {
+		return nil, err
+	}
+
+	return n, nil
 }
