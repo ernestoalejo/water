@@ -57,6 +57,9 @@ func (p *parser) parseAction() Node {
 	switch token.t {
 	case itemCall:
 		return p.parseCall()
+
+	case itemDefine:
+		return p.parseDefine()
 	}
 
 	p.errorf("token not expected: %s", token)
@@ -80,6 +83,7 @@ func (p *parser) parseCall() Node {
 		case itemString:
 			c.Args = append(c.Args, p.parseString())
 
+		// TODO: This code does what?
 		case itemLeftParen:
 			p.next()
 
@@ -111,6 +115,27 @@ func (p *parser) parseString() Node {
 	}
 
 	return n
+}
+
+func (p *parser) parseDefine() Node {
+	p.expect(itemDefine, "define")
+	name := p.expect(itemVar, "define")
+
+	var init Node
+	switch item := p.peek(); item.t {
+	case itemNumber:
+		init = p.parseNumber()
+
+	case itemString:
+		init = p.parseString()
+
+	default:
+		p.errorf("cannot init a variable with this kind of value: %s", item.t)
+	}
+
+	p.expect(itemRightParen, "define")
+
+	return newDefine(newVar(name.value), init)
 }
 
 func (p *parser) recover(errp *error) {

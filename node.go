@@ -22,6 +22,8 @@ const (
 	NodeCall
 	NodeNumber
 	NodeString
+	NodeDefine
+	NodeVar
 )
 
 // ========================================================
@@ -114,4 +116,33 @@ func newString(text string) (*StringNode, error) {
 	}
 
 	return n, nil
+}
+
+// ========================================================
+
+type VarNode struct {
+	NodeType
+	Name string
+}
+
+func newVar(name string) *VarNode {
+	return &VarNode{
+		NodeType: NodeVar,
+		Name:     name,
+	}
+}
+
+// ========================================================
+
+type DefineNode struct {
+	NodeType
+	variable *VarNode
+	value    Node
+}
+
+func newDefine(variable *VarNode, value Node) *DefineNode {
+	return &DefineNode{
+		variable: variable,
+		value:    value,
+	}
 }

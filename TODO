@@ -1,4 +1,7 @@
 
+ * Exec the defines.
+ * Initialize variables from expressions (combine var resolving code).
+ * See what the TODO-marked code works for.
  * Modulo operator.
  * Negation operator.
  * Implement the float64 operators for not-exact divisions.
