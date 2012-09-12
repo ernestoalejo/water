@@ -42,6 +42,7 @@ const (
 	itemRightParen
 	itemCall
 	itemNumber
+	itemString
 )
 
 var itemNames = map[itemType]string{
@@ -51,6 +52,7 @@ var itemNames = map[itemType]string{
 	itemRightParen: ")",
 	itemCall:       "call",
 	itemNumber:     "number",
+	itemString:     "string",
 }
 
 // ========================================================
@@ -184,6 +186,10 @@ func lexCode(l *lexer) stateFn {
 	case r == '(':
 		return lexLeftParen
 
+	case r == '"' || r == '\'':
+		l.backup()
+		return lexString
+
 	default:
 		l.backup()
 		return lexCall
@@ -215,6 +221,19 @@ func lexNumber(l *lexer) stateFn {
 
 	l.emit(itemNumber)
 
+	return lexCode
+}
+
+func lexString(l *lexer) stateFn {
+	delim := l.next()
+	for {
+		r := l.next()
+		if r == delim {
+			break
+		}
+	}
+
+	l.emit(itemString)
 	return lexCode
 }
 
