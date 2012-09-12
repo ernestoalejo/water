@@ -58,5 +58,6 @@ func initGlobalFuncs() map[string]interface{} {
 		"<=":    globals.LessEqual,
 		"=":     globals.Equal,
 		"print": globals.Print,
+		"begin": globals.Begin,
 	}
 }
