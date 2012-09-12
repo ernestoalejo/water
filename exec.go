@@ -105,6 +105,11 @@ func (s *state) checkFuncReturn(name string, t reflect.Type) {
 }
 
 func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
+	switch n.Type() {
+	case NodeCall:
+		return s.makeCall(n.(*CallNode))
+	}
+
 	switch t.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		if n, ok := n.(*NumberNode); ok && n.IsInt {
