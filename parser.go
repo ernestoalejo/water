@@ -81,7 +81,7 @@ func (p *parser) parseCall() Node {
 			p.next()
 
 		default:
-			p.errorf("unrecognized token %s", p.peek().value)
+			p.errorf("unexpected token in call to %s: %s", c.Name, p.peek().t)
 		}
 	}
 

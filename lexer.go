@@ -179,7 +179,6 @@ func lexCode(l *lexer) stateFn {
 		return lexNumber
 
 	case isAlphaNumeric(r) || isOperator(r):
-		fmt.Println("call", string(r))
 		l.backup()
 		return lexCall
 
@@ -197,7 +196,18 @@ func lexCode(l *lexer) stateFn {
 }
 
 func lexCall(l *lexer) stateFn {
-	l.next()
+	r := l.next()
+	if !isOperator(r) {
+		for isAlphaNumeric(r) {
+			r = l.next()
+		}
+		l.backup()
+	}
+
+	if l.start == l.pos {
+		l.errorf("illegal function name")
+	}
+
 	l.emit(itemCall)
 
 	return lexCode
