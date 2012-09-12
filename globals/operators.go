@@ -22,11 +22,10 @@ func op(name string, args []interface{}) (interface{}, error) {
 	}
 
 	// Try to sum the integers
-	_, ok := args[0].(int)
+	ac, ok := args[0].(int)
 	if ok {
-		var ac int
 		f := intFuncs[name]
-		for _, arg := range args {
+		for _, arg := range args[1:] {
 			ac = f(ac, arg.(int))
 		}
 		return ac, nil
@@ -40,7 +39,7 @@ func Plus(args ...interface{}) (interface{}, error) {
 }
 
 func Minus(args ...interface{}) (interface{}, error) {
-	return op("plus", args)
+	return op("minus", args)
 }
 
 func Times(args ...interface{}) (interface{}, error) {

@@ -168,15 +168,20 @@ func lexCode(l *lexer) stateFn {
 		return lexCode
 
 	case r == '+' || r == '-':
-		if c := l.peek(); isSpace(c) || c == ')' {
-			l.backup()
-			return lexCall
+		l.backup()
+		if c := l.peek(); '0' <= c && c <= '9' {
+			return lexNumber
 		}
-		fallthrough
+		return lexCall
 
-	case r == '+' || r == '-' || ('0' <= r && r <= '9'):
+	case '0' <= r && r <= '9':
 		l.backup()
 		return lexNumber
+
+	case isAlphaNumeric(r) || isOperator(r):
+		fmt.Println("call", string(r))
+		l.backup()
+		return lexCall
 
 	case r == ')':
 		return lexRightParen
@@ -218,4 +223,8 @@ func isSpace(r rune) bool {
 
 func isAlphaNumeric(r rune) bool {
 	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
+}
+
+func isOperator(r rune) bool {
+	return r == '+' || r == '-' || r == '*' || r == '/'
 }

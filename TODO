@@ -1,2 +1,5 @@
 
- * Implement the full set of operators in the lexer.
+ * Test more than one character operators.
+ * Modulo operator.
+ * Negation operator.
+ * Implement the float64 operators for not-exact divisions.
