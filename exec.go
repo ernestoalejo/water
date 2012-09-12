@@ -133,6 +133,11 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 		}
 		s.errorf("expected unsigned integer; found %s", n)
 
+	case reflect.String:
+		v := reflect.New(t).Elem()
+		v.SetString(n.(*StringNode).Text)
+		return v
+
 	case reflect.Interface:
 		return s.evalEmptyInterface(t, n)
 	}
@@ -147,6 +152,9 @@ func (s *state) evalEmptyInterface(t reflect.Type, n Node) reflect.Value {
 	switch n := n.(type) {
 	case *NumberNode:
 		return s.idealConstant(n)
+
+	case *StringNode:
+		return reflect.ValueOf(n.Text)
 	}
 
 	// Can't handle this kind of node
