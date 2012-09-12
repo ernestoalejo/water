@@ -65,7 +65,7 @@ type lexer struct {
 func NewLexer(input string) *lexer {
 	return &lexer{
 		input: input,
-		state: lexText,
+		state: lexCode,
 		items: make(chan item),
 	}
 }
@@ -147,42 +147,25 @@ func (l *lexer) emitItems() {
 	close(l.items)
 }
 
-func lexText(l *lexer) stateFn {
-	for {
-		c := l.next()
-		if c == '(' {
-			return lexLeftParen
-		} else if c == eof {
-			break
-		} else if isSpace(c) {
-			l.ignore()
-			continue
-		} else {
-			return l.errorf("input not expected: %s", l.input[l.start:l.pos])
-		}
-	}
-
-	l.emit(itemEOF)
-	return nil
-}
-
 func lexLeftParen(l *lexer) stateFn {
 	l.emit(itemLeftParen)
-	return lexInsideParen
+	return lexCode
 }
 
 func lexRightParen(l *lexer) stateFn {
 	l.emit(itemRightParen)
-	return lexText
+	return lexCode
 }
 
-func lexInsideParen(l *lexer) stateFn {
+func lexCode(l *lexer) stateFn {
 	switch r := l.next(); {
 	case r == eof:
-		return l.errorf("unclosed parenthesis")
+		l.emit(itemEOF)
+		return nil
 
 	case isSpace(r):
 		l.ignore()
+		return lexCode
 
 	case r == '+' || r == '-':
 		if c := l.peek(); isSpace(c) || c == ')' {
@@ -198,18 +181,21 @@ func lexInsideParen(l *lexer) stateFn {
 	case r == ')':
 		return lexRightParen
 
+	case r == '(':
+		return lexLeftParen
+
 	default:
 		return l.errorf("unrecognized character in action: %#U", r)
 	}
 
-	return lexInsideParen
+	panic("not reached")
 }
 
 func lexCall(l *lexer) stateFn {
 	l.next()
 	l.emit(itemCall)
 
-	return lexInsideParen
+	return lexCode
 }
 
 func lexNumber(l *lexer) stateFn {
@@ -219,7 +205,7 @@ func lexNumber(l *lexer) stateFn {
 
 	l.emit(itemNumber)
 
-	return lexInsideParen
+	return lexCode
 }
 
 func isSpace(r rune) bool {

@@ -73,6 +73,15 @@ func (p *parser) parseCall() Node {
 
 		case itemNumber:
 			c.Args = append(c.Args, p.parseNumber())
+
+		case itemCall:
+			c.Args = append(c.Args, p.parseCall())
+
+		case itemLeftParen:
+			p.next()
+
+		default:
+			p.errorf("unrecognized token %s", p.peek().value)
 		}
 	}
 

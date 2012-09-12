@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -22,6 +23,8 @@ func run() error {
 	}
 	defer f.Close()
 
+	log.Println(" * Parsing the file...")
+
 	// Parse it
 	root, err := Parse(f)
 	if err != nil {
@@ -29,6 +32,8 @@ func run() error {
 	}
 
 	funcs := initGlobalFuncs()
+
+	log.Println(" * Exec the file...")
 
 	// Exec it
 	if err := Exec(os.Stdout, root, funcs); err != nil {
