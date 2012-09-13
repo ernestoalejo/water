@@ -89,9 +89,8 @@ func (p *parser) parseCall() Node {
 		case itemDefine:
 			c.Args = append(c.Args, p.parseDefine())
 
-		// TODO: This code does what?
 		case itemLeftParen:
-			p.next()
+			return p.parseCall()
 
 		default:
 			p.errorf("unexpected token in call to %s: %s", c.Name, p.peek().t)
@@ -134,6 +133,10 @@ func (p *parser) parseDefine() Node {
 
 	case itemString:
 		init = p.parseString()
+
+	case itemLeftParen:
+		p.next()
+		init = p.parseCall()
 
 	default:
 		p.errorf("cannot init a variable with this kind of value: %s", item.t)

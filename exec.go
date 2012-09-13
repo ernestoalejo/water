@@ -171,6 +171,9 @@ func (s *state) evalEmptyInterface(n Node) reflect.Value {
 
 	case *DefineNode:
 		return s.walkDefine(n)
+
+	case *CallNode:
+		return s.makeCall(n)
 	}
 
 	// Can't handle this kind of node
@@ -202,7 +205,7 @@ func (s *state) print(v reflect.Value) {
 		return
 	}
 
-	fmt.Fprint(s.output, v.Interface())
+	fmt.Fprintln(s.output, v.Interface())
 }
 
 func (s *state) walkDefine(n *DefineNode) reflect.Value {
