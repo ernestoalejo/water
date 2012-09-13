@@ -202,7 +202,7 @@ func (s *state) print(v reflect.Value) {
 		return
 	}
 
-	fmt.Fprintln(s.output, v.Interface())
+	fmt.Fprint(s.output, v.Interface())
 }
 
 func (s *state) walkDefine(n *DefineNode) reflect.Value {
