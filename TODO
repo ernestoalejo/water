@@ -1,7 +1,10 @@
 
  * Join the parsing of the variable value in sets and defines.
- * Modulo operator.
- * Negation operator.
+ * Modulo operator. (%)
+ * Negation operator. (not)
+ * Sign change operator (-)
  * Implement the float64 operators for not-exact divisions.
  * Add operator to join strings.
+ * Sqrt.
+ * Lists.
  * Line numbers in the error messages.
