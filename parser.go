@@ -83,6 +83,9 @@ func (p *parser) parseCall() Node {
 		case itemString:
 			c.Args = append(c.Args, p.parseString())
 
+		case itemVar:
+			c.Args = append(c.Args, p.parseVar())
+
 		// TODO: This code does what?
 		case itemLeftParen:
 			p.next()
@@ -136,6 +139,11 @@ func (p *parser) parseDefine() Node {
 	p.expect(itemRightParen, "define")
 
 	return newDefine(newVar(name.value), init)
+}
+
+func (p *parser) parseVar() Node {
+	v := p.expect(itemVar, "var")
+	return newVar(v.value)
 }
 
 func (p *parser) recover(errp *error) {

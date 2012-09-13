@@ -126,6 +126,14 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 	switch n.Type() {
 	case NodeCall:
 		return s.makeCall(n.(*CallNode))
+
+	case NodeVar:
+		v := n.(*VarNode)
+		value, ok := s.vars[v.Name]
+		if !ok {
+			s.errorf("variable not defined: %s", v.Name)
+		}
+		return value
 	}
 
 	// Return the correct value depending on the needed type
@@ -224,8 +232,6 @@ func Exec(output io.Writer, tree *ListNode, funcs map[string]interface{}) (err e
 	for _, n := range s.t.Nodes {
 		s.print(s.walkNode(n))
 	}
-
-	fmt.Printf("%+v\n", s.vars)
 
 	return nil
 }
