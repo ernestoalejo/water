@@ -45,6 +45,7 @@ const (
 	itemString
 	itemVar
 	itemDefine
+	itemSet
 )
 
 var itemNames = map[itemType]string{
@@ -57,6 +58,7 @@ var itemNames = map[itemType]string{
 	itemString:     "string",
 	itemVar:        "variable",
 	itemDefine:     "define",
+	itemSet:        "set",
 }
 
 // ========================================================
@@ -214,9 +216,17 @@ func lexCall(l *lexer) stateFn {
 		}
 	}
 
+	// Lex the define variable calls
 	if strings.HasPrefix(l.input[l.start:], "define") {
 		l.pos += len("define")
 		l.emit(itemDefine)
+		return lexCode
+	}
+
+	// Lex the set variable calls
+	if strings.HasPrefix(l.input[l.start:], "set") {
+		l.pos += len("set")
+		l.emit(itemSet)
 		return lexCode
 	}
 

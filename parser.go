@@ -60,6 +60,9 @@ func (p *parser) parseAction() Node {
 
 	case itemDefine:
 		return p.parseDefine()
+
+	case itemSet:
+		return p.parseSet()
 	}
 
 	p.errorf("token not expected: %s", token)
@@ -87,16 +90,9 @@ func (p *parser) parseCall() Node {
 		case itemVar:
 			c.Args = append(c.Args, p.parseVar())
 
+		// Parse an action as the arg
 		case itemLeftParen:
-			p.next()
-
-			if p.peek().t == itemDefine {
-				// The args it's the result of a definition
-				c.Args = append(c.Args, p.parseDefine())
-			} else {
-				// The arg it's another function call
-				c.Args = append(c.Args, p.parseCall())
-			}
+			c.Args = append(c.Args, p.parseAction())
 
 		default:
 			p.errorf("unexpected token in call to %s: %s", c.Name, p.peek().t)
@@ -156,6 +152,31 @@ func (p *parser) parseDefine() Node {
 func (p *parser) parseVar() Node {
 	v := p.expect(itemVar, "var")
 	return newVar(v.value)
+}
+
+func (p *parser) parseSet() Node {
+	p.expect(itemSet, "set")
+	name := p.expect(itemVar, "set")
+
+	var init Node
+	switch item := p.peek(); item.t {
+	case itemNumber:
+		init = p.parseNumber()
+
+	case itemString:
+		init = p.parseString()
+
+	case itemLeftParen:
+		p.next()
+		init = p.parseCall()
+
+	default:
+		p.errorf("cannot set a variable with this kind of value: %s", item.t)
+	}
+
+	p.expect(itemRightParen, "set")
+
+	return newSet(newVar(name.value), init)
 }
 
 func (p *parser) recover(errp *error) {

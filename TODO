@@ -1,5 +1,5 @@
 
- * Automatize the testing of the lang.
+ * Join the parsing of the variable value in sets and defines.
  * Modulo operator.
  * Negation operator.
  * Implement the float64 operators for not-exact divisions.

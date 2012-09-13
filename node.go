@@ -24,6 +24,7 @@ const (
 	NodeString
 	NodeDefine
 	NodeVar
+	NodeSet
 )
 
 // ========================================================
@@ -143,6 +144,22 @@ type DefineNode struct {
 func newDefine(variable *VarNode, value Node) *DefineNode {
 	return &DefineNode{
 		NodeType: NodeDefine,
+		Variable: variable,
+		Value:    value,
+	}
+}
+
+// ========================================================
+
+type SetNode struct {
+	NodeType
+	Variable *VarNode
+	Value    Node
+}
+
+func newSet(variable *VarNode, value Node) *SetNode {
+	return &SetNode{
+		NodeType: NodeSet,
 		Variable: variable,
 		Value:    value,
 	}

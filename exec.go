@@ -43,6 +43,9 @@ func (s *state) walkNode(n Node) reflect.Value {
 
 	case NodeDefine:
 		return s.walkDefine(n.(*DefineNode))
+
+	case NodeSet:
+		return s.walkSet(n.(*SetNode))
 	}
 
 	s.errorf("cannot walk this kind this node: %d", n.Type())
@@ -174,6 +177,9 @@ func (s *state) evalEmptyInterface(n Node) reflect.Value {
 
 	case *CallNode:
 		return s.makeCall(n)
+
+	case *SetNode:
+		return s.walkSet(n)
 	}
 
 	// Can't handle this kind of node
@@ -212,7 +218,18 @@ func (s *state) walkDefine(n *DefineNode) reflect.Value {
 	name := n.Variable.Name
 
 	if _, ok := s.vars[name]; ok {
-		s.errorf("variable already declared: %s", name)
+		s.errorf("variable already defined: %s", name)
+	}
+
+	s.vars[name] = s.evalEmptyInterface(n.Value)
+	return s.vars[name]
+}
+
+func (s *state) walkSet(n *SetNode) reflect.Value {
+	name := n.Variable.Name
+
+	if _, ok := s.vars[name]; !ok {
+		s.errorf("variable not defined: %s", name)
 	}
 
 	s.vars[name] = s.evalEmptyInterface(n.Value)
