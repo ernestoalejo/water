@@ -136,13 +136,14 @@ func newVar(name string) *VarNode {
 
 type DefineNode struct {
 	NodeType
-	variable *VarNode
-	value    Node
+	Variable *VarNode
+	Value    Node
 }
 
 func newDefine(variable *VarNode, value Node) *DefineNode {
 	return &DefineNode{
-		variable: variable,
-		value:    value,
+		NodeType: NodeDefine,
+		Variable: variable,
+		Value:    value,
 	}
 }

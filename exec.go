@@ -40,16 +40,28 @@ func (s *state) walkNode(n Node) reflect.Value {
 	switch n.Type() {
 	case NodeCall:
 		return s.makeCall(n.(*CallNode))
+
+	case NodeDefine:
+		d := n.(*DefineNode)
+		name := d.Variable.Name
+
+		if _, ok := s.vars[name]; ok {
+			s.errorf("variable already declared: %s", name)
+		}
+
+		s.vars[name] = s.evalEmptyInterface(d.Value)
+		return s.vars[name]
 	}
 
-	return zero
+	s.errorf("cannot walk this kind this node: %d", n.Type())
+	panic("not reached")
 }
 
 func (s *state) makeCall(n *CallNode) reflect.Value {
 	// Get the func in the index
 	f, ok := s.funcs[n.Name]
 	if !ok {
-		panic(fmt.Errorf("function not defined %s", n.Name))
+		s.errorf("function not defined %s", n.Name)
 	}
 
 	// Analyze its type
@@ -140,7 +152,7 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 		return v
 
 	case reflect.Interface:
-		return s.evalEmptyInterface(t, n)
+		return s.evalEmptyInterface(n)
 	}
 
 	// Can't handle that type of arguments
@@ -148,7 +160,7 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 	panic("not reached")
 }
 
-func (s *state) evalEmptyInterface(t reflect.Type, n Node) reflect.Value {
+func (s *state) evalEmptyInterface(n Node) reflect.Value {
 	// Depending on the node type, try to guess the best arg
 	switch n := n.(type) {
 	case *NumberNode:
@@ -212,6 +224,8 @@ func Exec(output io.Writer, tree *ListNode, funcs map[string]interface{}) (err e
 	for _, n := range s.t.Nodes {
 		s.print(s.walkNode(n))
 	}
+
+	fmt.Printf("%+v\n", s.vars)
 
 	return nil
 }
