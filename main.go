@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	"io"
 	"os"
 
 	"github.com/ernestokarim/water/globals"
@@ -18,14 +18,21 @@ func main() {
 }
 
 func run() error {
-	// Open the file
-	f, err := os.Open(flag.Arg(0))
-	if err != nil {
-		return err
-	}
-	defer f.Close()
+	// The source stream
+	var f io.ReadCloser
 
-	log.Println(" * Parsing the file...")
+	if flag.Arg(0) != "" {
+		// Open the file if it's the first arg
+		var err error
+		f, err = os.Open(flag.Arg(0))
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+	} else {
+		// Use stdin if there's no filename in the args
+		f = os.Stdin
+	}
 
 	// Parse it
 	root, err := Parse(f)
@@ -35,8 +42,6 @@ func run() error {
 
 	// Start the global funcs
 	funcs := initGlobalFuncs()
-
-	log.Println(" * Exec the file...")
 
 	// Exec it
 	if err := Exec(os.Stdout, root, funcs); err != nil {
