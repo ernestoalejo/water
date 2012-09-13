@@ -70,27 +70,32 @@ func (p *parser) parseCall() Node {
 	c := newCall(p.next().value)
 	for {
 		switch p.peek().t {
+		// The right delimiter finishes the call parsing
 		case itemRightParen:
 			p.next()
 			return c
 
+		// Parse a number as the arg
 		case itemNumber:
 			c.Args = append(c.Args, p.parseNumber())
 
-		case itemCall:
-			c.Args = append(c.Args, p.parseCall())
-
+		// Parse a string as the arg
 		case itemString:
 			c.Args = append(c.Args, p.parseString())
 
+		// Parse a var as the arg
 		case itemVar:
 			c.Args = append(c.Args, p.parseVar())
 
+		// Parse a define as the arg (used mostly by "begin", but 
+		// it isn't restricted to that only).
 		case itemDefine:
 			c.Args = append(c.Args, p.parseDefine())
 
+		// The arg is a call to another func
 		case itemLeftParen:
-			return p.parseCall()
+			p.next()
+			c.Args = append(c.Args, p.parseCall())
 
 		default:
 			p.errorf("unexpected token in call to %s: %s", c.Name, p.peek().t)
