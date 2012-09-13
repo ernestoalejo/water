@@ -1,5 +1,5 @@
 
- * Exec the defines.
+ * Avoid printing the blank line in the define.lisp file.
  * Initialize variables from expressions (combine var resolving code).
  * See what the TODO-marked code works for.
  * Modulo operator.

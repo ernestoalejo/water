@@ -86,6 +86,9 @@ func (p *parser) parseCall() Node {
 		case itemVar:
 			c.Args = append(c.Args, p.parseVar())
 
+		case itemDefine:
+			c.Args = append(c.Args, p.parseDefine())
+
 		// TODO: This code does what?
 		case itemLeftParen:
 			p.next()

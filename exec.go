@@ -42,15 +42,7 @@ func (s *state) walkNode(n Node) reflect.Value {
 		return s.makeCall(n.(*CallNode))
 
 	case NodeDefine:
-		d := n.(*DefineNode)
-		name := d.Variable.Name
-
-		if _, ok := s.vars[name]; ok {
-			s.errorf("variable already declared: %s", name)
-		}
-
-		s.vars[name] = s.evalEmptyInterface(d.Value)
-		return s.vars[name]
+		return s.walkDefine(n.(*DefineNode))
 	}
 
 	s.errorf("cannot walk this kind this node: %d", n.Type())
@@ -176,10 +168,13 @@ func (s *state) evalEmptyInterface(n Node) reflect.Value {
 
 	case *StringNode:
 		return reflect.ValueOf(n.Text)
+
+	case *DefineNode:
+		return s.walkDefine(n)
 	}
 
 	// Can't handle this kind of node
-	s.errorf("can't handle assignment of %s to empty interface argument", n)
+	s.errorf("can't handle assignment of %+v to empty interface argument", n)
 	panic("not reached")
 }
 
@@ -208,6 +203,17 @@ func (s *state) print(v reflect.Value) {
 	}
 
 	fmt.Fprintln(s.output, v.Interface())
+}
+
+func (s *state) walkDefine(n *DefineNode) reflect.Value {
+	name := n.Variable.Name
+
+	if _, ok := s.vars[name]; ok {
+		s.errorf("variable already declared: %s", name)
+	}
+
+	s.vars[name] = s.evalEmptyInterface(n.Value)
+	return s.vars[name]
 }
 
 func Exec(output io.Writer, tree *ListNode, funcs map[string]interface{}) (err error) {
