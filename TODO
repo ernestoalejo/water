@@ -1,5 +1,4 @@
 
- * Fix the additional new line in the begin file.
  * Automatize the testing of the lang.
  * Modulo operator.
  * Negation operator.

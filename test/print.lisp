@@ -1,5 +1,5 @@
 
-(print "Hello world!")
-(print "Adios!")
+(println "Hello world!")
+(println "Adios!" 42)
 
-(print "number: %d$" 45)
+(print "number: %d$\n" 45)

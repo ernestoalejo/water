@@ -48,16 +48,17 @@ func run() error {
 
 func initGlobalFuncs() map[string]interface{} {
 	return map[string]interface{}{
-		"+":     globals.Plus,
-		"-":     globals.Minus,
-		"*":     globals.Times,
-		"/":     globals.Divide,
-		">":     globals.GreaterThan,
-		">=":    globals.GreaterEqual,
-		"<":     globals.LessThan,
-		"<=":    globals.LessEqual,
-		"=":     globals.Equal,
-		"print": globals.Print,
-		"begin": globals.Begin,
+		"+":       globals.Plus,
+		"-":       globals.Minus,
+		"*":       globals.Times,
+		"/":       globals.Divide,
+		">":       globals.GreaterThan,
+		">=":      globals.GreaterEqual,
+		"<":       globals.LessThan,
+		"<=":      globals.LessEqual,
+		"=":       globals.Equal,
+		"print":   globals.Print,
+		"println": globals.Println,
+		"begin":   globals.Begin,
 	}
 }

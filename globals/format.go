@@ -5,5 +5,9 @@ import (
 )
 
 func Print(format string, args ...interface{}) string {
-	return fmt.Sprintf(format + "\n", args...)
+	return fmt.Sprintf(format, args...)
+}
+
+func Println(args ...interface{}) string {
+	return fmt.Sprintln(args...)
 }
