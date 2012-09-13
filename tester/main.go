@@ -29,6 +29,8 @@ func testFiles() error {
 		}
 	}
 
+	log.Println("All tests passed successfully!")
+
 	return nil
 }
 
