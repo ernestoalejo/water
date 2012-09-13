@@ -1,7 +1,6 @@
 package globals
 
-import (
-)
+import ()
 
 func Begin(args ...interface{}) interface{} {
 	if len(args) == 0 {

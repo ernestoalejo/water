@@ -8,9 +8,9 @@ type intFunc func(a, b int) int
 
 var (
 	intFuncs = map[string]intFunc{
-		"plus": func(a, b int) int { return a + b },
-		"minus": func(a, b int) int { return a - b },
-		"times": func(a, b int) int { return a * b },
+		"plus":   func(a, b int) int { return a + b },
+		"minus":  func(a, b int) int { return a - b },
+		"times":  func(a, b int) int { return a * b },
 		"divide": func(a, b int) int { return a / b },
 	}
 )
