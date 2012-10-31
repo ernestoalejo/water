@@ -65,25 +65,24 @@ func (s *state) errorf(format string, args ...interface{}) {
 }
 
 func (s *state) walkNode(n Node) reflect.Value {
-	// TODO: Change this to a type switch
-	switch n.Type() {
-	case NodeCall:
-		return s.makeCall(n.(*CallNode))
+	switch n := n.(type) {
+	case *CallNode:
+		return s.makeCall(n)
 
-	case NodeDefine:
-		return s.walkDefine(n.(*DefineNode))
+	case *DefineNode:
+		return s.walkDefine(n)
 
-	case NodeSet:
-		return s.walkSet(n.(*SetNode))
+	case *SetNode:
+		return s.walkSet(n)
 
-	case NodeIf:
-		return s.walkIf(n.(*IfNode))
+	case *IfNode:
+		return s.walkIf(n)
 
-	case NodeBegin:
-		return s.walkBegin(n.(*BeginNode))
+	case *BeginNode:
+		return s.walkBegin(n)
 	}
 
-	s.errorf("cannot walk this kind this node: %d", n.Type())
+	s.errorf("cannot walk this kind this node: %s", n)
 	panic("not reached")
 }
 
@@ -158,8 +157,6 @@ func (s *state) checkFuncReturn(name string, t reflect.Type) {
 }
 
 func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
-	// TODO: This should allow the complete tree of possible expressions,
-	// not only some of them
 	// If the arg it's a subtree, execute it first
 	switch n := n.(type) {
 	case *CallNode:
@@ -212,7 +209,6 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 }
 
 func (s *state) evalEmptyInterface(n Node) reflect.Value {
-	// TODO: Refactor this to a single function called in all sites.
 	// Depending on the node type, try to guess the best arg
 	switch n := n.(type) {
 	case *NumberNode:

@@ -1,7 +1,8 @@
 
- * Maked TODO.
- * If node's can be variables or constants.
+ * Delete the newX node functions and build it directly.
+ 
  * Allow a more rich kind of arguments to a function (exec.go).
+ * If node's can be variables or constants.
  * makeCall should be walkCall for consistency.
  * The parseCall() should read its own left parenthesis.
 

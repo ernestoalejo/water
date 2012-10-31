@@ -6,63 +6,44 @@ import (
 )
 
 type Node interface {
-	Type() NodeType
+	String() string
 }
-
-// ========================================================
-
-type NodeType int
-
-func (t NodeType) Type() NodeType {
-	return t
-}
-
-const (
-	NodeList NodeType = iota
-	NodeCall
-	NodeNumber
-	NodeString
-	NodeDefine
-	NodeVar
-	NodeSet
-	NodeIf
-	NodeBool
-	NodeBegin
-)
 
 // ========================================================
 
 type ListNode struct {
-	NodeType
 	Nodes []Node
 }
 
 func newList() *ListNode {
-	return &ListNode{
-		NodeType: NodeList,
-	}
+	return &ListNode{}
+}
+
+func (n *ListNode) String() string {
+	return fmt.Sprintf("list node containing %d nodes", len(n.Nodes))
 }
 
 // ========================================================
 
 type CallNode struct {
-	NodeType
 	Name string
 	Args []Node
 }
 
 func newCall(name string) *CallNode {
 	return &CallNode{
-		NodeType: NodeCall,
-		Name:     name,
-		Args:     []Node{},
+		Name: name,
+		Args: []Node{},
 	}
+}
+
+func (n *CallNode) String() string {
+	return fmt.Sprintf("call node to function %s with %d args", n.Name, len(n.Args))
 }
 
 // ========================================================
 
 type NumberNode struct {
-	NodeType
 	Text string
 
 	IsInt, IsUint bool
@@ -72,10 +53,7 @@ type NumberNode struct {
 }
 
 func newNumber(text string) (*NumberNode, error) {
-	n := &NumberNode{
-		NodeType: NodeNumber,
-		Text:     text,
-	}
+	n := &NumberNode{Text: text}
 
 	u, err := strconv.ParseUint(text, 0, 64)
 	if err == nil {
@@ -101,17 +79,18 @@ func newNumber(text string) (*NumberNode, error) {
 	return n, nil
 }
 
+func (n *NumberNode) String() string {
+	return fmt.Sprintf("number node with the value of %s", n.Text)
+}
+
 // ========================================================
 
 type StringNode struct {
-	NodeType
 	Text string
 }
 
 func newString(text string) (*StringNode, error) {
-	n := &StringNode{
-		NodeType: NodeString,
-	}
+	n := new(StringNode)
 
 	var err error
 	n.Text, err = strconv.Unquote(text)
@@ -122,56 +101,65 @@ func newString(text string) (*StringNode, error) {
 	return n, nil
 }
 
+func (n *StringNode) String() string {
+	return fmt.Sprintf("string node containing ```%s```", n.Text)
+}
+
 // ========================================================
 
 type VarNode struct {
-	NodeType
 	Name string
 }
 
 func newVar(name string) *VarNode {
 	return &VarNode{
-		NodeType: NodeVar,
-		Name:     name,
+		Name: name,
 	}
+}
+
+func (n *VarNode) String() string {
+	return fmt.Sprintf("variable node with name %s", n.Name)
 }
 
 // ========================================================
 
 type DefineNode struct {
-	NodeType
 	Variable *VarNode
 	Value    Node
 }
 
 func newDefine(variable *VarNode, value Node) *DefineNode {
 	return &DefineNode{
-		NodeType: NodeDefine,
 		Variable: variable,
 		Value:    value,
 	}
 }
 
+func (n *DefineNode) String() string {
+	return fmt.Sprintf("define a %s", n.Variable)
+}
+
 // ========================================================
 
 type SetNode struct {
-	NodeType
 	Variable *VarNode
 	Value    Node
 }
 
 func newSet(variable *VarNode, value Node) *SetNode {
 	return &SetNode{
-		NodeType: NodeSet,
 		Variable: variable,
 		Value:    value,
 	}
 }
 
+func (n *SetNode) String() string {
+	return fmt.Sprintf("set a %s", n.Variable)
+}
+
 // ========================================================
 
 type IfNode struct {
-	NodeType
 	Test   Node
 	Conseq Node
 	Alt    Node
@@ -179,37 +167,44 @@ type IfNode struct {
 
 func newIf(test, consequence, alternative Node) *IfNode {
 	return &IfNode{
-		NodeType: NodeIf,
-		Test:     test,
-		Conseq:   consequence,
-		Alt:      alternative,
+		Test:   test,
+		Conseq: consequence,
+		Alt:    alternative,
 	}
+}
+
+func (n *IfNode) String() string {
+	return fmt.Sprintf("if node")
 }
 
 // ========================================================
 
 type BoolNode struct {
-	NodeType
 	Value bool
 }
 
 func newBool(value bool) *BoolNode {
 	return &BoolNode{
-		NodeType: NodeBool,
-		Value:    value,
+		Value: value,
 	}
+}
+
+func (n *BoolNode) String() string {
+	return fmt.Sprintf("bool node with the value of %v", n.Value)
 }
 
 // ========================================================
 
 type BeginNode struct {
-	NodeType
 	Nodes []Node
 }
 
 func newBegin(nodes []Node) *BeginNode {
 	return &BeginNode{
-		NodeType: NodeBegin,
-		Nodes:    nodes,
+		Nodes: nodes,
 	}
+}
+
+func (n *BeginNode) String() string {
+	return fmt.Sprintf("begin node with %d things to execute", len(n.Nodes))
 }
