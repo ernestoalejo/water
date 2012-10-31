@@ -3,6 +3,8 @@
  * If node's can be variables or constants.
 
  * Join the parsing of the variable value in sets and defines.
+ * Be able to define variables (or set) using another variable value.
+
  * Modulo operator. (%)
  * Negation operator. (not)
  * Sign change operator (-)
