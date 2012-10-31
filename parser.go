@@ -132,20 +132,29 @@ func (p *parser) parseNumber() Node {
 
 	n := &NumberNode{Text: item.value}
 
+	sign := 1
+	if item.value[0] == '+' || item.value[0] == '-' {
+		if item.value[0] == '-' {
+			sign = -1
+		}
+
+		item.value = item.value[1:]
+	}
+
 	u, err := strconv.ParseUint(item.value, 0, 64)
 	if err == nil {
 		n.IsUint = true
-		n.Uint64 = u
+		n.Uint64 = uint64(sign) * u
 	}
 
 	i, err := strconv.ParseInt(item.value, 0, 64)
 	if err == nil {
 		n.IsInt = true
-		n.Int64 = i
+		n.Int64 = int64(sign) * i
 
 		if i == 0 {
 			n.IsUint = true
-			n.Uint64 = u
+			n.Uint64 = uint64(sign) * u
 		}
 	}
 

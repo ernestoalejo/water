@@ -17,6 +17,12 @@ var (
 )
 
 func op(name string, args []interface{}) (interface{}, error) {
+	// These two operator can be used as a sign changer for numbers
+	// (so only one argument). Anyway, who uses the + as a unary function??
+	if len(args) == 1 && (name == "plus" || name == "minus") {
+		args = append([]interface{}{0}, args...)
+	}
+
 	// Check that two arguments are provided at least
 	if len(args) < 2 {
 		return 0, fmt.Errorf("at least two params are needed for the %s operator", name)

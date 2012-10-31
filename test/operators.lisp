@@ -4,6 +4,9 @@
 (- 3 2)
 (* 2 3)
 (/ 10 2)
+(% 11 5)
+(- 5)
+(- -5)
 
 (println "")
 (println " > Greater than")
@@ -44,6 +47,9 @@
 7
 1
 6
+5
+1
+-5
 5
 
  > Greater than
