@@ -64,6 +64,23 @@ func (s *state) errorf(format string, args ...interface{}) {
 	panic(fmt.Sprintf(format, args...))
 }
 
+func (s *state) print(v reflect.Value) {
+	// Don't print the zero value
+	if v == zero {
+		return
+	}
+
+	// Strings are printed as they come, without newlines
+	if v.Kind() == reflect.String {
+		fmt.Fprint(s.output, v.Interface())
+		return
+	}
+
+	// The rest of values are printed with a newline
+	// (in prevention of an object printing)
+	fmt.Fprintln(s.output, v.Interface())
+}
+
 func (s *state) walkNode(n Node) reflect.Value {
 	switch n := n.(type) {
 	case *CallNode:
@@ -168,73 +185,33 @@ func (s *state) checkFuncReturn(name string, t reflect.Type) {
 	s.errorf("can't handle multiple returns from function %s", name)
 }
 
+// Return the correct value for an argument based on its needed argument.
+// It gives the fixed list of types that a Go function can receive from the
+// interpreter.
 func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
-	// If the arg it's a subtree, execute it first
-	switch n := n.(type) {
-	case *CallNode:
-		return s.walkCall(n)
+	param := s.walkNode(n)
 
-	case *VarNode:
-		value, ok := s.vars[n.Name]
-		if !ok {
-			s.errorf("variable not defined: %s", n.Name)
-		}
-		return value
+	// Extract the runtime types
+	tparam := param.Type().Kind()
+	expected := t.Kind()
 
-	case *BoolNode:
-		return reflect.ValueOf(n.Value)
-
-	case *BeginNode:
-		return s.walkBegin(n)
-	}
-
-	// Return the correct value depending on the needed type
-	switch t.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if n, ok := n.(*NumberNode); ok && n.IsInt {
-			v := reflect.New(t).Elem()
-			v.SetInt(n.Int64)
-			return v
-		}
-		s.errorf("expected integer; found %s", n)
-
+	// As a special case, unsigned number should be converted from the
+	// signed ones
+	switch expected {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if n, ok := n.(*NumberNode); ok && n.IsUint {
-			v := reflect.New(t).Elem()
-			v.SetUint(n.Uint64)
-			return v
+		if tparam == reflect.Int {
+			param = reflect.New(t).Elem()
+			param.SetUint(n.(*NumberNode).Uint64)
 		}
-		s.errorf("expected unsigned integer; found %s", n)
-
-	case reflect.String:
-		v := reflect.New(t).Elem()
-		v.SetString(n.(*StringNode).Text)
-		return v
-
-	case reflect.Interface:
-		return s.walkNode(n)
 	}
 
-	// Can't handle that type of arguments
-	s.errorf("can't handle %+v for arg of type %s", n, t)
-	panic("not reached")
-}
-
-func (s *state) print(v reflect.Value) {
-	// Don't print the zero value
-	if v == zero {
-		return
+	// Signal a type mismatching between the formal and current parameter
+	// interface{} it's an exception, because accepts all kind of types
+	if expected != reflect.Interface && expected != tparam {
+		s.errorf("incorrect argument type, expected %s, got %s", expected, tparam)
 	}
 
-	// Strings are printed as they come, without newlines
-	if v.Kind() == reflect.String {
-		fmt.Fprint(s.output, v.Interface())
-		return
-	}
-
-	// The rest of values are printed with a newline
-	// (in prevention of an object printing)
-	fmt.Fprintln(s.output, v.Interface())
+	return param
 }
 
 func (s *state) walkDefine(n *DefineNode) reflect.Value {
@@ -280,8 +257,6 @@ func (s *state) walkBegin(n *BeginNode) (v reflect.Value) {
 	return
 }
 
-// Try to parse nums as an ideal constant. Note that an unsigned integer ideal
-// constant should be an integer one too.
 func (s *state) walkNumber(c *NumberNode) reflect.Value {
 	switch {
 	case c.IsInt:
@@ -290,9 +265,6 @@ func (s *state) walkNumber(c *NumberNode) reflect.Value {
 			s.errorf("%s overflows int", c.Text)
 		}
 		return reflect.ValueOf(n)
-
-	case c.IsUint:
-		s.errorf("unsigned should be signed too: %s", c.Text)
 	}
 
 	panic("not reached")

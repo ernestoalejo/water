@@ -1,5 +1,4 @@
- 
- * Allow a more rich kind of arguments to a function (exec.go).
+
  * If node's can be variables or constants.
  * The parseCall() should read its own left parenthesis.
 
