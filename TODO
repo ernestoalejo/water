@@ -1,5 +1,4 @@
 
- * Be able to define variables (or set) using another variable value.
  * Escape quotes inside string constants.
 
  * Modulo operator. (%)
