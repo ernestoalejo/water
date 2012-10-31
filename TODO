@@ -1,4 +1,7 @@
 
+ * Make #t and #f constants.
+ * If node's can be variables or constants.
+
  * Join the parsing of the variable value in sets and defines.
  * Modulo operator. (%)
  * Negation operator. (not)
