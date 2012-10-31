@@ -80,9 +80,21 @@ func (s *state) walkNode(n Node) reflect.Value {
 
 	case *BeginNode:
 		return s.walkBegin(n)
+
+	case *VarNode:
+		return s.walkVar(n)
+
+	case *BoolNode:
+		return s.walkBool(n)
+
+	case *NumberNode:
+		return s.walkNumber(n)
+
+	case *StringNode:
+		return s.walkString(n)
 	}
 
-	s.errorf("cannot walk this kind this node: %s", n)
+	s.errorf("cannot walk the node: %s", n)
 	panic("not reached")
 }
 
@@ -200,63 +212,12 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 		return v
 
 	case reflect.Interface:
-		return s.evalEmptyInterface(n)
+		return s.walkNode(n)
 	}
 
 	// Can't handle that type of arguments
 	s.errorf("can't handle %+v for arg of type %s", n, t)
 	panic("not reached")
-}
-
-func (s *state) evalEmptyInterface(n Node) reflect.Value {
-	// Depending on the node type, try to guess the best arg
-	switch n := n.(type) {
-	case *NumberNode:
-		return s.idealConstant(n)
-
-	case *StringNode:
-		return reflect.ValueOf(n.Text)
-
-	case *DefineNode:
-		return s.walkDefine(n)
-
-	case *CallNode:
-		return s.walkCall(n)
-
-	case *SetNode:
-		return s.walkSet(n)
-
-	case *IfNode:
-		return s.walkIf(n)
-
-	case *BoolNode:
-		return reflect.ValueOf(n.Value)
-
-	case *BeginNode:
-		return s.walkBegin(n)
-	}
-
-	// Can't handle this kind of node
-	s.errorf("can't handle assignment of %+v to empty interface argument", n)
-	panic("not reached")
-}
-
-// Try to parse nums as ideal constant. Note that an unsigned integer ideal
-// constant should be an integer one too.
-func (s *state) idealConstant(c *NumberNode) reflect.Value {
-	switch {
-	case c.IsInt:
-		n := int(c.Int64)
-		if int64(n) != c.Int64 {
-			s.errorf("%s overflows int", c.Text)
-		}
-		return reflect.ValueOf(n)
-
-	case c.IsUint:
-		s.errorf("unsigned integers are not supported: %s", c.Text)
-	}
-
-	return zero
 }
 
 func (s *state) print(v reflect.Value) {
@@ -283,7 +244,7 @@ func (s *state) walkDefine(n *DefineNode) reflect.Value {
 		s.errorf("variable already defined: %s", name)
 	}
 
-	s.vars[name] = s.evalEmptyInterface(n.Value)
+	s.vars[name] = s.walkNode(n.Value)
 	return s.vars[name]
 }
 
@@ -294,7 +255,7 @@ func (s *state) walkSet(n *SetNode) reflect.Value {
 		s.errorf("variable not defined: %s", name)
 	}
 
-	s.vars[name] = s.evalEmptyInterface(n.Value)
+	s.vars[name] = s.walkNode(n.Value)
 	return s.vars[name]
 }
 
@@ -308,7 +269,7 @@ func (s *state) walkIf(n *IfNode) reflect.Value {
 		}
 	}
 
-	s.errorf("if condition doesn't return a boolean")
+	s.errorf("if condition is not a boolean")
 	panic("not reached")
 }
 
@@ -317,4 +278,38 @@ func (s *state) walkBegin(n *BeginNode) (v reflect.Value) {
 		v = s.walkNode(node)
 	}
 	return
+}
+
+// Try to parse nums as an ideal constant. Note that an unsigned integer ideal
+// constant should be an integer one too.
+func (s *state) walkNumber(c *NumberNode) reflect.Value {
+	switch {
+	case c.IsInt:
+		n := int(c.Int64)
+		if int64(n) != c.Int64 {
+			s.errorf("%s overflows int", c.Text)
+		}
+		return reflect.ValueOf(n)
+
+	case c.IsUint:
+		s.errorf("unsigned should be signed too: %s", c.Text)
+	}
+
+	panic("not reached")
+}
+
+func (s *state) walkVar(n *VarNode) reflect.Value {
+	value, ok := s.vars[n.Name]
+	if !ok {
+		s.errorf("variable not defined: %s", n.Name)
+	}
+	return value
+}
+
+func (s *state) walkBool(n *BoolNode) reflect.Value {
+	return reflect.ValueOf(n.Value)
+}
+
+func (s *state) walkString(n *StringNode) reflect.Value {
+	return reflect.ValueOf(n.Text)
 }
