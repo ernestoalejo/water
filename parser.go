@@ -28,7 +28,7 @@ func Parse(r io.Reader) (l *ListNode, err error) {
 			break
 		}
 
-		p.Root.Nodes = append(p.Root.Nodes, p.parseAction())
+		p.Root.Nodes = append(p.Root.Nodes, p.parseExpression())
 	}
 
 	l = p.Root
@@ -90,20 +90,9 @@ func (p *parser) recover(errp *error) {
 	}
 }
 
-func (p *parser) parseAction() Node {
-	p.expect(itemLeftParen, "action")
-
-	token := p.peek()
-	switch token.t {
-	case itemCall:
-		return p.parseCall()
-	}
-
-	p.errorf("token not expected: %s", token)
-	return nil
-}
-
 func (p *parser) parseCall() Node {
+	p.expect(itemLeftParen, "call")
+
 	name := p.peek().value
 
 	// Parse some call-like structures that are treated in a
@@ -127,31 +116,12 @@ func (p *parser) parseCall() Node {
 		Args: make([]Node, 0),
 	}
 	for {
-		switch p.peek().t {
-		// The right delimiter finishes the call parsing
-		case itemRightParen:
+		if p.peek().t == itemRightParen {
 			p.next()
 			return c
-
-		// Parse a number as the arg
-		case itemNumber:
-			c.Args = append(c.Args, p.parseNumber())
-
-		// Parse a string as the arg
-		case itemString:
-			c.Args = append(c.Args, p.parseString())
-
-		// Parse a var as the arg
-		case itemVar:
-			c.Args = append(c.Args, p.parseVar())
-
-		// Parse an action as the arg
-		case itemLeftParen:
-			c.Args = append(c.Args, p.parseAction())
-
-		default:
-			p.errorf("unexpected token in call to %s: %s", c.Name, p.peek().t)
 		}
+
+		c.Args = append(c.Args, p.parseExpression())
 	}
 
 	panic("not reached")
@@ -261,7 +231,6 @@ func (p *parser) parseExpression() Node {
 		return p.parseString()
 
 	case itemLeftParen:
-		p.next()
 		return p.parseCall()
 
 	case itemBool:

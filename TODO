@@ -1,6 +1,4 @@
 
- * The parseCall() should read its own left parenthesis.
-
  * Be able to define variables (or set) using another variable value.
  * Escape quotes inside string constants.
  * Check if we really need the NodeType.
