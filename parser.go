@@ -240,7 +240,7 @@ func (p *parser) parseExpression() Node {
 		return p.parseVar()
 
 	default:
-		p.errorf("cannot use this kind of value as a expression: %s", item.t)
+		p.errorf("cannot use this kind of value as a expression: %s", item)
 	}
 
 	panic("not reached")

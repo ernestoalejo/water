@@ -89,7 +89,6 @@ func (l *lexer) emit(t itemType) {
 func (l *lexer) next() rune {
 	if l.pos >= len(l.input) {
 		l.width = 0
-		l.start = l.pos
 		return eof
 	}
 
@@ -276,12 +275,8 @@ func lexBool(l *lexer) stateFn {
 func lexVar(l *lexer) stateFn {
 	// Scan the name
 	r := l.next()
-	for r != ' ' && r != ')' {
+	for !isSpace(r) && r != eof && r != ')' {
 		r = l.next()
-
-		if r == eof {
-			return l.errorf("eof not expected inside a variable name")
-		}
 	}
 	l.backup()
 
@@ -290,7 +285,6 @@ func lexVar(l *lexer) stateFn {
 		return l.errorf("illegal variable name")
 	}
 
-	// Emit the correct token
 	l.emit(itemVar)
 
 	return lexCode
