@@ -26,6 +26,7 @@ const (
 	NodeVar
 	NodeSet
 	NodeIf
+	NodeBool
 )
 
 // ========================================================
@@ -181,5 +182,19 @@ func newIf(test, consequence, alternative Node) *IfNode {
 		Test:     test,
 		Conseq:   consequence,
 		Alt:      alternative,
+	}
+}
+
+// ========================================================
+
+type BoolNode struct {
+	NodeType
+	Value bool
+}
+
+func newBool(value bool) *BoolNode {
+	return &BoolNode{
+		NodeType: NodeBool,
+		Value:    value,
 	}
 }

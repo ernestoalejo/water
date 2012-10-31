@@ -144,6 +144,9 @@ func (p *parser) parseDefine() Node {
 		p.next()
 		init = p.parseCall()
 
+	case itemBool:
+		init = p.parseBool()
+
 	default:
 		p.errorf("cannot init a variable with this kind of value: %s", item.t)
 	}
@@ -174,6 +177,9 @@ func (p *parser) parseSet() Node {
 		p.next()
 		init = p.parseCall()
 
+	case itemBool:
+		init = p.parseBool()
+
 	default:
 		p.errorf("cannot set a variable with this kind of value: %s", item.t)
 	}
@@ -198,6 +204,17 @@ func (p *parser) parseIf() Node {
 	p.expect(itemRightParen, "if")
 
 	return newIf(test, conseq, alt)
+}
+
+func (p *parser) parseBool() Node {
+	it := p.expect(itemBool, "bool")
+
+	if it.value == "#t" || it.value == "#f" {
+		return newBool(it.value == "#t")
+	}
+
+	p.errorf("incorrect boolean value, should be #t or #f: ", it)
+	panic("not reached")
 }
 
 func (p *parser) recover(errp *error) {

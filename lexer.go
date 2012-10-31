@@ -43,6 +43,7 @@ const (
 	itemCall
 	itemNumber
 	itemString
+	itemBool
 	itemVar
 )
 
@@ -54,6 +55,7 @@ var itemNames = map[itemType]string{
 	itemCall:       "call",
 	itemNumber:     "number",
 	itemString:     "string",
+	itemBool:       "bool",
 	itemVar:        "variable",
 }
 
@@ -194,6 +196,10 @@ func lexCode(l *lexer) stateFn {
 		l.backup()
 		return lexString
 
+	case r == '#':
+		l.backup()
+		return lexBool
+
 	default:
 		l.backup()
 		return lexVar
@@ -256,6 +262,14 @@ func lexString(l *lexer) stateFn {
 	}
 
 	l.emit(itemString)
+	return lexCode
+}
+
+func lexBool(l *lexer) stateFn {
+	l.next() // get the #
+	l.next() // get the t/f
+	l.emit(itemBool)
+
 	return lexCode
 }
 
