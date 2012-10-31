@@ -32,6 +32,12 @@
 (= 3 3)
 (= 2 3)
 
+(println "")
+(println " > Not")
+(not #t)
+(not #f)
+(not (not #t))
+
 ###########################################################
 
  > Common operators
@@ -61,3 +67,8 @@ false
  > Equal to
 true
 false
+
+ > Not
+false
+true
+true

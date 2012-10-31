@@ -1,8 +1,6 @@
 
  * Escape quotes inside string constants.
 
- * Modulo operator. (%)
- * Negation operator. (not)
  * Sign change operator (-)
  * Implement the float64 operators for not-exact divisions.
  * Add operator to join strings.

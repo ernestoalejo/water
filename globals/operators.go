@@ -12,6 +12,7 @@ var (
 		"minus":  func(a, b int) int { return a - b },
 		"times":  func(a, b int) int { return a * b },
 		"divide": func(a, b int) int { return a / b },
+		"modulo": func(a, b int) int { return a % b },
 	}
 )
 
@@ -55,6 +56,10 @@ func Divide(args ...interface{}) (interface{}, error) {
 	return op("divide", args)
 }
 
+func Modulo(args ...interface{}) (interface{}, error) {
+	return op("modulo", args)
+}
+
 func GreaterThan(a, b int) bool {
 	return a > b
 }
@@ -73,4 +78,8 @@ func LessEqual(a, b int) bool {
 
 func Equal(a, b interface{}) bool {
 	return a == b
+}
+
+func Not(a bool) bool {
+	return !a
 }

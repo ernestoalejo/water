@@ -57,6 +57,7 @@ func initGlobalFuncs() map[string]interface{} {
 		"-":       globals.Minus,
 		"*":       globals.Times,
 		"/":       globals.Divide,
+		"%":       globals.Modulo,
 		">":       globals.GreaterThan,
 		">=":      globals.GreaterEqual,
 		"<":       globals.LessThan,
@@ -64,5 +65,6 @@ func initGlobalFuncs() map[string]interface{} {
 		"=":       globals.Equal,
 		"print":   globals.Print,
 		"println": globals.Println,
+		"not":     globals.Not,
 	}
 }
