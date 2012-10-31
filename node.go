@@ -27,6 +27,7 @@ const (
 	NodeSet
 	NodeIf
 	NodeBool
+	NodeBegin
 )
 
 // ========================================================
@@ -196,5 +197,19 @@ func newBool(value bool) *BoolNode {
 	return &BoolNode{
 		NodeType: NodeBool,
 		Value:    value,
+	}
+}
+
+// ========================================================
+
+type BeginNode struct {
+	NodeType
+	Nodes []Node
+}
+
+func newBegin(nodes []Node) *BeginNode {
+	return &BeginNode{
+		NodeType: NodeBegin,
+		Nodes:    nodes,
 	}
 }

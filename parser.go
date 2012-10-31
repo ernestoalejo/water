@@ -7,6 +7,36 @@ import (
 	"runtime"
 )
 
+func Parse(r io.Reader) (l *ListNode, err error) {
+	contents, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+
+	p := &parser{
+		Root: newList(),
+		lex:  NewLexer(string(contents)),
+	}
+
+	defer p.recover(&err)
+	go p.lex.emitItems()
+
+	for {
+		item := p.peek()
+		if item.t == itemEOF {
+			break
+		}
+
+		p.Root.Nodes = append(p.Root.Nodes, p.parseAction())
+	}
+
+	l = p.Root
+
+	return
+}
+
+// ========================================================
+
 type parser struct {
 	Root *ListNode
 
@@ -50,6 +80,15 @@ func (p *parser) errorf(format string, args ...interface{}) {
 	panic(fmt.Sprintf(format, args...))
 }
 
+func (p *parser) recover(errp *error) {
+	if e := recover(); e != nil {
+		*errp = fmt.Errorf("%s", e)
+		if _, ok := e.(runtime.Error); ok {
+			panic(e)
+		}
+	}
+}
+
 func (p *parser) parseAction() Node {
 	p.expect(itemLeftParen, "action")
 
@@ -77,6 +116,9 @@ func (p *parser) parseCall() Node {
 
 	case "if":
 		return p.parseIf()
+
+	case "begin":
+		return p.parseBegin()
 	}
 
 	c := newCall(p.next().value)
@@ -206,39 +248,19 @@ func (p *parser) parseExpression() Node {
 	panic("not reached")
 }
 
-func (p *parser) recover(errp *error) {
-	if e := recover(); e != nil {
-		*errp = fmt.Errorf("%s", e)
-		if _, ok := e.(runtime.Error); ok {
-			panic(e)
-		}
-	}
-}
+func (p *parser) parseBegin() Node {
+	p.expect(itemCall, "begin")
 
-func Parse(r io.Reader) (l *ListNode, err error) {
-	contents, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
-
-	p := &parser{
-		Root: newList(),
-		lex:  NewLexer(string(contents)),
-	}
-
-	defer p.recover(&err)
-	go p.lex.emitItems()
-
+	nodes := []Node{}
 	for {
-		item := p.peek()
-		if item.t == itemEOF {
+		if item := p.peek(); item.t == itemRightParen {
 			break
 		}
 
-		p.Root.Nodes = append(p.Root.Nodes, p.parseAction())
+		nodes = append(nodes, p.parseExpression())
 	}
 
-	l = p.Root
+	p.expect(itemRightParen, "begin")
 
-	return
+	return newBegin(nodes)
 }
