@@ -231,23 +231,14 @@ func (p *parser) parseVar() Node {
 
 func (p *parser) parseIf() Node {
 	p.expect(itemCall, "if")
-
-	p.expect(itemLeftParen, "if:test")
-	test := p.parseCall()
-
-	p.expect(itemLeftParen, "if:conseq")
-	conseq := p.parseCall()
-
-	p.expect(itemLeftParen, "if:alt")
-	alt := p.parseCall()
-
+	n := &IfNode{
+		Test:   p.parseExpression(),
+		Conseq: p.parseExpression(),
+		Alt:    p.parseExpression(),
+	}
 	p.expect(itemRightParen, "if")
 
-	return &IfNode{
-		Test:   test,
-		Conseq: conseq,
-		Alt:    alt,
-	}
+	return n
 }
 
 func (p *parser) parseBool() Node {
@@ -275,6 +266,9 @@ func (p *parser) parseExpression() Node {
 
 	case itemBool:
 		return p.parseBool()
+
+	case itemVar:
+		return p.parseVar()
 
 	default:
 		p.errorf("cannot use this kind of value as a expression: %s", item.t)

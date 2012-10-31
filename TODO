@@ -1,5 +1,4 @@
 
- * If nodes should be expressions, not only calls.
  * The parseCall() should read its own left parenthesis.
 
  * Be able to define variables (or set) using another variable value.
