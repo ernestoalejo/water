@@ -70,6 +70,8 @@ func (p *parser) parseCall() Node {
 		return p.parseDefine()
 	} else if name == "set" {
 		return p.parseSet()
+	} else if name == "if" {
+		return p.parseIf()
 	}
 
 	c := newCall(p.next().value)
@@ -179,6 +181,23 @@ func (p *parser) parseSet() Node {
 	p.expect(itemRightParen, "set")
 
 	return newSet(newVar(name.value), init)
+}
+
+func (p *parser) parseIf() Node {
+	p.expect(itemCall, "if")
+
+	p.expect(itemLeftParen, "if:test")
+	test := p.parseCall()
+
+	p.expect(itemLeftParen, "if:conseq")
+	conseq := p.parseCall()
+
+	p.expect(itemLeftParen, "if:alt")
+	alt := p.parseCall()
+
+	p.expect(itemRightParen, "if")
+
+	return newIf(test, conseq, alt)
 }
 
 func (p *parser) recover(errp *error) {

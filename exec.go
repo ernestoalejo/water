@@ -46,6 +46,9 @@ func (s *state) walkNode(n Node) reflect.Value {
 
 	case NodeSet:
 		return s.walkSet(n.(*SetNode))
+
+	case NodeIf:
+		return s.walkIf(n.(*IfNode))
 	}
 
 	s.errorf("cannot walk this kind this node: %d", n.Type())
@@ -180,6 +183,9 @@ func (s *state) evalEmptyInterface(n Node) reflect.Value {
 
 	case *SetNode:
 		return s.walkSet(n)
+
+	case *IfNode:
+		return s.walkIf(n)
 	}
 
 	// Can't handle this kind of node
@@ -234,6 +240,20 @@ func (s *state) walkSet(n *SetNode) reflect.Value {
 
 	s.vars[name] = s.evalEmptyInterface(n.Value)
 	return s.vars[name]
+}
+
+func (s *state) walkIf(n *IfNode) reflect.Value {
+	test := s.walkNode(n.Test)
+	if test.Kind() == reflect.Bool {
+		if test.Bool() {
+			return s.walkNode(n.Conseq)
+		} else {
+			return s.walkNode(n.Alt)
+		}
+	}
+
+	s.errorf("if condition doesn't return a boolean")
+	panic("not reached")
 }
 
 func Exec(output io.Writer, tree *ListNode, funcs map[string]interface{}) (err error) {

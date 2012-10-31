@@ -26,7 +26,12 @@ func op(name string, args []interface{}) (interface{}, error) {
 	if ok {
 		f := intFuncs[name]
 		for _, arg := range args[1:] {
-			ac = f(ac, arg.(int))
+			n := arg.(int)
+			if name == "divide" && n == 0 {
+				return ac, fmt.Errorf("division by zero")
+			}
+
+			ac = f(ac, n)
 		}
 		return ac, nil
 	}
