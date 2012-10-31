@@ -56,7 +56,7 @@ func (s *state) makeCall(n *CallNode) reflect.Value {
 	// Get the func in the index
 	f, ok := s.funcs[n.Name]
 	if !ok {
-		s.errorf("function not defined %s", n.Name)
+		s.errorf("function not defined: %s", n.Name)
 	}
 
 	// Analyze its type

@@ -25,6 +25,7 @@ const (
 	NodeDefine
 	NodeVar
 	NodeSet
+	NodeIf
 )
 
 // ========================================================
@@ -162,5 +163,23 @@ func newSet(variable *VarNode, value Node) *SetNode {
 		NodeType: NodeSet,
 		Variable: variable,
 		Value:    value,
+	}
+}
+
+// ========================================================
+
+type IfNode struct {
+	NodeType
+	Test   Node
+	Conseq Node
+	Alt    Node
+}
+
+func newIf(test, consequence, alternative Node) *IfNode {
+	return &IfNode{
+		NodeType: NodeIf,
+		Test:     test,
+		Conseq:   consequence,
+		Alt:      alternative,
 	}
 }

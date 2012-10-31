@@ -214,7 +214,7 @@ func lexCall(l *lexer) stateFn {
 
 	// Scan the name
 	r := l.next()
-	for r != ' ' && r != ')' {
+	for !isSpace(r) && r != ')' {
 		r = l.next()
 
 		if r == eof {

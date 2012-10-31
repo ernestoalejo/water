@@ -57,9 +57,6 @@ func (p *parser) parseAction() Node {
 	switch token.t {
 	case itemCall:
 		return p.parseCall()
-
-	case itemDefine:
-		return p.parseDefine()
 	}
 
 	p.errorf("token not expected: %s", token)
@@ -67,7 +64,7 @@ func (p *parser) parseAction() Node {
 }
 
 func (p *parser) parseCall() Node {
-	name := p.next().value
+	name := p.peek().value
 
 	if name == "define" {
 		return p.parseDefine()
@@ -75,7 +72,7 @@ func (p *parser) parseCall() Node {
 		return p.parseSet()
 	}
 
-	c := newCall(name)
+	c := newCall(p.next().value)
 	for {
 		switch p.peek().t {
 		// The right delimiter finishes the call parsing
