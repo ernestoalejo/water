@@ -1,8 +1,7 @@
 
- * Avoid hoisting variables when using begin.
+ * Implement begin correctly, as a node (to avoid hoisting).
  * If node's can be variables or constants.
 
- * Join the parsing of the variable value in sets and defines.
  * Be able to define variables (or set) using another variable value.
  * Escape quotes inside string constants.
 

@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -24,6 +25,10 @@ func testFiles() error {
 	}
 
 	for _, file := range files {
+		if filepath.Ext(file.Name()) != ".lisp" {
+			continue
+		}
+
 		if err := testFile(file.Name()); err != nil {
 			return err
 		}

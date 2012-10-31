@@ -66,11 +66,16 @@ func (p *parser) parseAction() Node {
 func (p *parser) parseCall() Node {
 	name := p.peek().value
 
-	if name == "define" {
+	// Parse some call-like structures that are treated in a
+	// different way by the lang
+	switch name {
+	case "define":
 		return p.parseDefine()
-	} else if name == "set" {
+
+	case "set":
 		return p.parseSet()
-	} else if name == "if" {
+
+	case "if":
 		return p.parseIf()
 	}
 
@@ -131,26 +136,7 @@ func (p *parser) parseString() Node {
 func (p *parser) parseDefine() Node {
 	p.expect(itemCall, "define")
 	name := p.expect(itemVar, "define")
-
-	var init Node
-	switch item := p.peek(); item.t {
-	case itemNumber:
-		init = p.parseNumber()
-
-	case itemString:
-		init = p.parseString()
-
-	case itemLeftParen:
-		p.next()
-		init = p.parseCall()
-
-	case itemBool:
-		init = p.parseBool()
-
-	default:
-		p.errorf("cannot init a variable with this kind of value: %s", item.t)
-	}
-
+	init := p.parseExpression()
 	p.expect(itemRightParen, "define")
 
 	return newDefine(newVar(name.value), init)
@@ -164,26 +150,7 @@ func (p *parser) parseVar() Node {
 func (p *parser) parseSet() Node {
 	p.expect(itemCall, "set")
 	name := p.expect(itemVar, "set")
-
-	var init Node
-	switch item := p.peek(); item.t {
-	case itemNumber:
-		init = p.parseNumber()
-
-	case itemString:
-		init = p.parseString()
-
-	case itemLeftParen:
-		p.next()
-		init = p.parseCall()
-
-	case itemBool:
-		init = p.parseBool()
-
-	default:
-		p.errorf("cannot set a variable with this kind of value: %s", item.t)
-	}
-
+	init := p.parseExpression()
 	p.expect(itemRightParen, "set")
 
 	return newSet(newVar(name.value), init)
@@ -214,6 +181,28 @@ func (p *parser) parseBool() Node {
 	}
 
 	p.errorf("incorrect boolean value, should be #t or #f: ", it)
+	panic("not reached")
+}
+
+func (p *parser) parseExpression() Node {
+	switch item := p.peek(); item.t {
+	case itemNumber:
+		return p.parseNumber()
+
+	case itemString:
+		return p.parseString()
+
+	case itemLeftParen:
+		p.next()
+		return p.parseCall()
+
+	case itemBool:
+		return p.parseBool()
+
+	default:
+		p.errorf("cannot use this kind of value as a expression: %s", item.t)
+	}
+
 	panic("not reached")
 }
 
