@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"runtime"
+	"strconv"
 )
 
 func Parse(r io.Reader) (l *ListNode, err error) {
@@ -14,7 +15,7 @@ func Parse(r io.Reader) (l *ListNode, err error) {
 	}
 
 	p := &parser{
-		Root: newList(),
+		Root: new(ListNode),
 		lex:  NewLexer(string(contents)),
 	}
 
@@ -121,7 +122,10 @@ func (p *parser) parseCall() Node {
 		return p.parseBegin()
 	}
 
-	c := newCall(p.next().value)
+	c := &CallNode{
+		Name: p.next().value,
+		Args: make([]Node, 0),
+	}
 	for {
 		switch p.peek().t {
 		// The right delimiter finishes the call parsing
@@ -156,9 +160,27 @@ func (p *parser) parseCall() Node {
 func (p *parser) parseNumber() Node {
 	item := p.expect(itemNumber, "number")
 
-	n, err := newNumber(item.value)
-	if err != nil {
-		p.errorf("wrong number value %s: %s", item.value, err)
+	n := &NumberNode{Text: item.value}
+
+	u, err := strconv.ParseUint(item.value, 0, 64)
+	if err == nil {
+		n.IsUint = true
+		n.Uint64 = u
+	}
+
+	i, err := strconv.ParseInt(item.value, 0, 64)
+	if err == nil {
+		n.IsInt = true
+		n.Int64 = i
+
+		if i == 0 {
+			n.IsUint = true
+			n.Uint64 = u
+		}
+	}
+
+	if !n.IsUint || !n.IsInt {
+		p.errorf("illegal number syntax: %s", item.value)
 	}
 
 	return n
@@ -167,9 +189,12 @@ func (p *parser) parseNumber() Node {
 func (p *parser) parseString() Node {
 	item := p.expect(itemString, "string")
 
-	n, err := newString(item.value)
+	n := new(StringNode)
+
+	var err error
+	n.Text, err = strconv.Unquote(item.value)
 	if err != nil {
-		p.errorf("%s", err)
+		p.errorf("cannot unquote the string literal: %s", err)
 	}
 
 	return n
@@ -177,25 +202,31 @@ func (p *parser) parseString() Node {
 
 func (p *parser) parseDefine() Node {
 	p.expect(itemCall, "define")
-	name := p.expect(itemVar, "define")
+	name := p.parseVar()
 	init := p.parseExpression()
 	p.expect(itemRightParen, "define")
 
-	return newDefine(newVar(name.value), init)
-}
-
-func (p *parser) parseVar() Node {
-	v := p.expect(itemVar, "var")
-	return newVar(v.value)
+	return &DefineNode{
+		Variable: name.(*VarNode),
+		Value:    init,
+	}
 }
 
 func (p *parser) parseSet() Node {
 	p.expect(itemCall, "set")
-	name := p.expect(itemVar, "set")
+	name := p.parseVar()
 	init := p.parseExpression()
 	p.expect(itemRightParen, "set")
 
-	return newSet(newVar(name.value), init)
+	return &SetNode{
+		Variable: name.(*VarNode),
+		Value:    init,
+	}
+}
+
+func (p *parser) parseVar() Node {
+	item := p.expect(itemVar, "var")
+	return &VarNode{Name: item.value}
 }
 
 func (p *parser) parseIf() Node {
@@ -212,14 +243,18 @@ func (p *parser) parseIf() Node {
 
 	p.expect(itemRightParen, "if")
 
-	return newIf(test, conseq, alt)
+	return &IfNode{
+		Test:   test,
+		Conseq: conseq,
+		Alt:    alt,
+	}
 }
 
 func (p *parser) parseBool() Node {
 	it := p.expect(itemBool, "bool")
 
 	if it.value == "#t" || it.value == "#f" {
-		return newBool(it.value == "#t")
+		return &BoolNode{Value: it.value == "#t"}
 	}
 
 	p.errorf("incorrect boolean value, should be #t or #f: ", it)
@@ -251,7 +286,7 @@ func (p *parser) parseExpression() Node {
 func (p *parser) parseBegin() Node {
 	p.expect(itemCall, "begin")
 
-	nodes := []Node{}
+	nodes := make([]Node, 0)
 	for {
 		if item := p.peek(); item.t == itemRightParen {
 			break
@@ -266,5 +301,5 @@ func (p *parser) parseBegin() Node {
 		p.errorf("begin sentence without expressions")
 	}
 
-	return newBegin(nodes)
+	return &BeginNode{Nodes: nodes}
 }

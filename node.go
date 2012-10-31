@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 )
 
 type Node interface {
@@ -15,10 +14,6 @@ type ListNode struct {
 	Nodes []Node
 }
 
-func newList() *ListNode {
-	return &ListNode{}
-}
-
 func (n *ListNode) String() string {
 	return fmt.Sprintf("list node containing %d nodes", len(n.Nodes))
 }
@@ -28,13 +23,6 @@ func (n *ListNode) String() string {
 type CallNode struct {
 	Name string
 	Args []Node
-}
-
-func newCall(name string) *CallNode {
-	return &CallNode{
-		Name: name,
-		Args: []Node{},
-	}
 }
 
 func (n *CallNode) String() string {
@@ -52,33 +40,6 @@ type NumberNode struct {
 	Uint64 uint64
 }
 
-func newNumber(text string) (*NumberNode, error) {
-	n := &NumberNode{Text: text}
-
-	u, err := strconv.ParseUint(text, 0, 64)
-	if err == nil {
-		n.IsUint = true
-		n.Uint64 = u
-	}
-
-	i, err := strconv.ParseInt(text, 0, 64)
-	if err == nil {
-		n.IsInt = true
-		n.Int64 = i
-
-		if i == 0 {
-			n.IsUint = true
-			n.Uint64 = u
-		}
-	}
-
-	if !n.IsUint || !n.IsInt {
-		return nil, fmt.Errorf("illegal number syntax: %s", text)
-	}
-
-	return n, nil
-}
-
 func (n *NumberNode) String() string {
 	return fmt.Sprintf("number node with the value of %s", n.Text)
 }
@@ -89,18 +50,6 @@ type StringNode struct {
 	Text string
 }
 
-func newString(text string) (*StringNode, error) {
-	n := new(StringNode)
-
-	var err error
-	n.Text, err = strconv.Unquote(text)
-	if err != nil {
-		return nil, err
-	}
-
-	return n, nil
-}
-
 func (n *StringNode) String() string {
 	return fmt.Sprintf("string node containing ```%s```", n.Text)
 }
@@ -109,12 +58,6 @@ func (n *StringNode) String() string {
 
 type VarNode struct {
 	Name string
-}
-
-func newVar(name string) *VarNode {
-	return &VarNode{
-		Name: name,
-	}
 }
 
 func (n *VarNode) String() string {
@@ -128,13 +71,6 @@ type DefineNode struct {
 	Value    Node
 }
 
-func newDefine(variable *VarNode, value Node) *DefineNode {
-	return &DefineNode{
-		Variable: variable,
-		Value:    value,
-	}
-}
-
 func (n *DefineNode) String() string {
 	return fmt.Sprintf("define a %s", n.Variable)
 }
@@ -144,13 +80,6 @@ func (n *DefineNode) String() string {
 type SetNode struct {
 	Variable *VarNode
 	Value    Node
-}
-
-func newSet(variable *VarNode, value Node) *SetNode {
-	return &SetNode{
-		Variable: variable,
-		Value:    value,
-	}
 }
 
 func (n *SetNode) String() string {
@@ -165,14 +94,6 @@ type IfNode struct {
 	Alt    Node
 }
 
-func newIf(test, consequence, alternative Node) *IfNode {
-	return &IfNode{
-		Test:   test,
-		Conseq: consequence,
-		Alt:    alternative,
-	}
-}
-
 func (n *IfNode) String() string {
 	return fmt.Sprintf("if node")
 }
@@ -183,12 +104,6 @@ type BoolNode struct {
 	Value bool
 }
 
-func newBool(value bool) *BoolNode {
-	return &BoolNode{
-		Value: value,
-	}
-}
-
 func (n *BoolNode) String() string {
 	return fmt.Sprintf("bool node with the value of %v", n.Value)
 }
@@ -197,12 +112,6 @@ func (n *BoolNode) String() string {
 
 type BeginNode struct {
 	Nodes []Node
-}
-
-func newBegin(nodes []Node) *BeginNode {
-	return &BeginNode{
-		Nodes: nodes,
-	}
 }
 
 func (n *BeginNode) String() string {
