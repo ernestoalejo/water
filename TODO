@@ -1,7 +1,6 @@
  
  * Allow a more rich kind of arguments to a function (exec.go).
  * If node's can be variables or constants.
- * makeCall should be walkCall for consistency.
  * The parseCall() should read its own left parenthesis.
 
  * Be able to define variables (or set) using another variable value.

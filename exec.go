@@ -67,7 +67,7 @@ func (s *state) errorf(format string, args ...interface{}) {
 func (s *state) walkNode(n Node) reflect.Value {
 	switch n := n.(type) {
 	case *CallNode:
-		return s.makeCall(n)
+		return s.walkCall(n)
 
 	case *DefineNode:
 		return s.walkDefine(n)
@@ -86,7 +86,7 @@ func (s *state) walkNode(n Node) reflect.Value {
 	panic("not reached")
 }
 
-func (s *state) makeCall(n *CallNode) reflect.Value {
+func (s *state) walkCall(n *CallNode) reflect.Value {
 	// Get the func in the index
 	f, ok := s.funcs[n.Name]
 	if !ok {
@@ -160,7 +160,7 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 	// If the arg it's a subtree, execute it first
 	switch n := n.(type) {
 	case *CallNode:
-		return s.makeCall(n)
+		return s.walkCall(n)
 
 	case *VarNode:
 		value, ok := s.vars[n.Name]
@@ -221,7 +221,7 @@ func (s *state) evalEmptyInterface(n Node) reflect.Value {
 		return s.walkDefine(n)
 
 	case *CallNode:
-		return s.makeCall(n)
+		return s.walkCall(n)
 
 	case *SetNode:
 		return s.walkSet(n)
