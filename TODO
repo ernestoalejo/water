@@ -1,5 +1,5 @@
 
- * Make #t and #f constants => add them to the interpreter.
+ * Avoid hoisting variables when using begin.
  * If node's can be variables or constants.
 
  * Join the parsing of the variable value in sets and defines.

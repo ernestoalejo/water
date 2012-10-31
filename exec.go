@@ -101,8 +101,10 @@ func (s *state) makeCall(n *CallNode) reflect.Value {
 		}
 	}
 
+	// Exec the call
 	res := f.Call(args)
 
+	// Check if the func has and returned an error
 	if len(res) == 2 && !res[1].IsNil() {
 		s.errorf("error calling %s: %s", n.Name, res[1].Interface().(error))
 	}
@@ -121,17 +123,19 @@ func (s *state) checkFuncReturn(name string, t reflect.Type) {
 
 func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 	// If the arg it's a subtree, execute it first
-	switch n.Type() {
-	case NodeCall:
-		return s.makeCall(n.(*CallNode))
+	switch n := n.(type) {
+	case *CallNode:
+		return s.makeCall(n)
 
-	case NodeVar:
-		v := n.(*VarNode)
-		value, ok := s.vars[v.Name]
+	case *VarNode:
+		value, ok := s.vars[n.Name]
 		if !ok {
-			s.errorf("variable not defined: %s", v.Name)
+			s.errorf("variable not defined: %s", n.Name)
 		}
 		return value
+
+	case *BoolNode:
+		return reflect.ValueOf(n.Value)
 	}
 
 	// Return the correct value depending on the needed type
@@ -186,6 +190,9 @@ func (s *state) evalEmptyInterface(n Node) reflect.Value {
 
 	case *IfNode:
 		return s.walkIf(n)
+
+	case *BoolNode:
+		return reflect.ValueOf(n.Value)
 	}
 
 	// Can't handle this kind of node
