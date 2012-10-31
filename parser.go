@@ -262,5 +262,9 @@ func (p *parser) parseBegin() Node {
 
 	p.expect(itemRightParen, "begin")
 
+	if len(nodes) == 0 {
+		p.errorf("begin sentence without expressions")
+	}
+
 	return newBegin(nodes)
 }

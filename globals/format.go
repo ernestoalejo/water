@@ -4,10 +4,10 @@ import (
 	"fmt"
 )
 
-func Print(format string, args ...interface{}) string {
-	return fmt.Sprintf(format, args...)
+func Print(format string, args ...interface{}) {
+	fmt.Printf(format, args...)
 }
 
-func Println(args ...interface{}) string {
-	return fmt.Sprintln(args...)
+func Println(args ...interface{}) {
+	fmt.Println(args...)
 }

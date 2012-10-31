@@ -1,6 +1,9 @@
 
- * Implement begin correctly, as a node (to avoid hoisting).
+ * Maked TODO.
  * If node's can be variables or constants.
+ * Allow a more rich kind of arguments to a function (exec.go).
+ * makeCall should be walkCall for consistency.
+ * The parseCall() should read its own left parenthesis.
 
  * Be able to define variables (or set) using another variable value.
  * Escape quotes inside string constants.

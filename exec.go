@@ -12,6 +12,34 @@ var (
 	zero      reflect.Value
 )
 
+func Exec(output io.Writer, tree *ListNode, funcs map[string]interface{}) (err error) {
+	// Convert the functions to reflect values
+	f := map[string]reflect.Value{}
+	for name, fn := range funcs {
+		f[name] = reflect.ValueOf(fn)
+	}
+
+	// Build the environment
+	s := &state{
+		vars:   make(variables),
+		funcs:  f,
+		output: output,
+		t:      tree,
+	}
+
+	// Hook up the recover
+	defer s.recover(&err)
+
+	// Start the execution
+	for _, n := range s.t.Nodes {
+		s.print(s.walkNode(n))
+	}
+
+	return nil
+}
+
+// ========================================================
+
 type variables map[string]reflect.Value
 type functions map[string]reflect.Value
 
@@ -37,6 +65,7 @@ func (s *state) errorf(format string, args ...interface{}) {
 }
 
 func (s *state) walkNode(n Node) reflect.Value {
+	// TODO: Change this to a type switch
 	switch n.Type() {
 	case NodeCall:
 		return s.makeCall(n.(*CallNode))
@@ -49,6 +78,9 @@ func (s *state) walkNode(n Node) reflect.Value {
 
 	case NodeIf:
 		return s.walkIf(n.(*IfNode))
+
+	case NodeBegin:
+		return s.walkBegin(n.(*BeginNode))
 	}
 
 	s.errorf("cannot walk this kind this node: %d", n.Type())
@@ -109,12 +141,16 @@ func (s *state) makeCall(n *CallNode) reflect.Value {
 		s.errorf("error calling %s: %s", n.Name, res[1].Interface().(error))
 	}
 
+	if t.NumOut() == 0 {
+		return zero
+	}
+
 	return res[0]
 }
 
 func (s *state) checkFuncReturn(name string, t reflect.Type) {
 	// Check the number of return values
-	if t.NumOut() == 1 || (t.NumOut() == 2 && t.Out(1) == errorType) {
+	if t.NumOut() == 0 || t.NumOut() == 1 || (t.NumOut() == 2 && t.Out(1) == errorType) {
 		return
 	}
 
@@ -122,6 +158,8 @@ func (s *state) checkFuncReturn(name string, t reflect.Type) {
 }
 
 func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
+	// TODO: This should allow the complete tree of possible expressions,
+	// not only some of them
 	// If the arg it's a subtree, execute it first
 	switch n := n.(type) {
 	case *CallNode:
@@ -136,6 +174,9 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 
 	case *BoolNode:
 		return reflect.ValueOf(n.Value)
+
+	case *BeginNode:
+		return s.walkBegin(n)
 	}
 
 	// Return the correct value depending on the needed type
@@ -171,6 +212,7 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 }
 
 func (s *state) evalEmptyInterface(n Node) reflect.Value {
+	// TODO: Refactor this to a single function called in all sites.
 	// Depending on the node type, try to guess the best arg
 	switch n := n.(type) {
 	case *NumberNode:
@@ -193,6 +235,9 @@ func (s *state) evalEmptyInterface(n Node) reflect.Value {
 
 	case *BoolNode:
 		return reflect.ValueOf(n.Value)
+
+	case *BeginNode:
+		return s.walkBegin(n)
 	}
 
 	// Can't handle this kind of node
@@ -219,11 +264,19 @@ func (s *state) idealConstant(c *NumberNode) reflect.Value {
 }
 
 func (s *state) print(v reflect.Value) {
+	// Don't print the zero value
+	if v == zero {
+		return
+	}
+
+	// Strings are printed as they come, without newlines
 	if v.Kind() == reflect.String {
 		fmt.Fprint(s.output, v.Interface())
 		return
 	}
 
+	// The rest of values are printed with a newline
+	// (in prevention of an object printing)
 	fmt.Fprintln(s.output, v.Interface())
 }
 
@@ -263,28 +316,9 @@ func (s *state) walkIf(n *IfNode) reflect.Value {
 	panic("not reached")
 }
 
-func Exec(output io.Writer, tree *ListNode, funcs map[string]interface{}) (err error) {
-	// Convert the functions to reflect values
-	f := map[string]reflect.Value{}
-	for name, fn := range funcs {
-		f[name] = reflect.ValueOf(fn)
+func (s *state) walkBegin(n *BeginNode) (v reflect.Value) {
+	for _, node := range n.Nodes {
+		v = s.walkNode(node)
 	}
-
-	// Build the environment
-	s := &state{
-		vars:   make(variables),
-		funcs:  f,
-		output: output,
-		t:      tree,
-	}
-
-	// Hook up the recover
-	defer s.recover(&err)
-
-	// Start the execution
-	for _, n := range s.t.Nodes {
-		s.print(s.walkNode(n))
-	}
-
-	return nil
+	return
 }
