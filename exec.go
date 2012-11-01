@@ -20,7 +20,7 @@ var (
 	errorType = reflect.TypeOf((*error)(nil)).Elem()
 	zero      reflect.Value
 
-	lambdaType = reflect.TypeOf((*lambdaValue)(nil)).Elem()
+	lambdaType = reflect.TypeOf((*lambdaValue)(nil))
 )
 
 func Exec(output io.Writer, tree *ListNode, funcs map[string]interface{}) (err error) {
@@ -131,9 +131,15 @@ func (s *state) walkNode(n Node) reflect.Value {
 
 func (s *state) walkCall(n *CallNode) reflect.Value {
 	// Get the func in the index
-	f, ok := s.funcs[n.Name]
+	f, ok := s.evalFunction(n.Name)
 	if !ok {
-		s.errorf("function not defined: %s", n.Name)
+		f, ok = s.vars[n.Name]
+		if !ok || f.Type() != lambdaType {
+			s.errorf("function not defined: %s", n.Name)
+		}
+
+		// User-defined funcs are called in a different way
+		return s.walkUserCall(f, n)
 	}
 
 	// Analyze its type
@@ -199,6 +205,24 @@ func (s *state) checkFuncReturn(name string, t reflect.Type) {
 	s.errorf("can't handle multiple returns from function %s", name)
 }
 
+func (s *state) evalFunction(name string) (reflect.Value, bool) {
+	for {
+		if s == nil {
+			break
+		}
+
+		if s.funcs != nil {
+			f, ok := s.funcs[name]
+			if ok {
+				return f, true
+			}
+		}
+
+		s = s.outer
+	}
+	return zero, false
+}
+
 // Return the correct value for an argument based on its needed argument.
 // It gives the fixed list of types that a Go function can receive from the
 // interpreter.
@@ -226,6 +250,36 @@ func (s *state) evalArg(t reflect.Type, n Node) reflect.Value {
 	}
 
 	return param
+}
+
+func (s *state) walkUserCall(v reflect.Value, n *CallNode) reflect.Value {
+	// Check if the variable value it's really a lambda function,
+	// and not any other kind of value
+	if v.Type() != lambdaType {
+		s.errorf("the variable %s is not a function, cannot be called", n.Name)
+	}
+
+	f := v.Interface().(*lambdaValue)
+
+	// Check the arity of the func
+	if len(f.args) != len(n.Args) {
+		s.errorf("call doesn't use the correct arity: expected %d, got %s",
+			len(f.args), len(n.Args))
+	}
+
+	// Create the new sub-environment
+	env := &state{
+		vars:   make(variables),
+		output: s.output,
+		outer:  s,
+	}
+
+	// Evaluate the arguments
+	for i, node := range n.Args {
+		env.vars[f.args[i]] = s.walkNode(node)
+	}
+
+	return env.walkCall(f.body)
 }
 
 func (s *state) walkDefine(n *DefineNode) reflect.Value {

@@ -1,4 +1,9 @@
 
+ * Variable resolution should make a loookup until the higher env.
+ * Two arguments with the same name should be an error.
+ * Calls can have a begin node, defines, etc. as a body; make it an expression.
+ * Make calls inline: ((lambda (r) (* r r)) 5)
+ 
  * Escape quotes inside string constants.
 
  * Implement the float64 operators for not-exact divisions.
