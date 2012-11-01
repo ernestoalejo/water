@@ -7,9 +7,20 @@ import (
 	"runtime"
 )
 
+type lambdaValue struct {
+	args []string
+	body *CallNode
+}
+
+func (v *lambdaValue) String() string {
+	return fmt.Sprintf("<lambda value with arity %d>", len(v.args))
+}
+
 var (
 	errorType = reflect.TypeOf((*error)(nil)).Elem()
 	zero      reflect.Value
+
+	lambdaType = reflect.TypeOf((*lambdaValue)(nil)).Elem()
 )
 
 func Exec(output io.Writer, tree *ListNode, funcs map[string]interface{}) (err error) {
@@ -109,6 +120,9 @@ func (s *state) walkNode(n Node) reflect.Value {
 
 	case *StringNode:
 		return s.walkString(n)
+
+	case *LambdaNode:
+		return s.walkLambda(n)
 	}
 
 	s.errorf("cannot walk the node: %s", n)
@@ -284,4 +298,17 @@ func (s *state) walkBool(n *BoolNode) reflect.Value {
 
 func (s *state) walkString(n *StringNode) reflect.Value {
 	return reflect.ValueOf(n.Text)
+}
+
+func (s *state) walkLambda(n *LambdaNode) reflect.Value {
+	c := &lambdaValue{
+		args: make([]string, len(n.Args)),
+		body: n.Body.(*CallNode),
+	}
+
+	for i, arg := range n.Args {
+		c.args[i] = arg.(*VarNode).Name
+	}
+
+	return reflect.ValueOf(c)
 }
