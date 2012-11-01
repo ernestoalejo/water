@@ -117,3 +117,14 @@ type BeginNode struct {
 func (n *BeginNode) String() string {
 	return fmt.Sprintf("begin node with %d things to execute", len(n.Nodes))
 }
+
+// ========================================================
+
+type LambdaNode struct {
+	Args []Node // always a *VarNode
+	Body Node   // always a *CallNode
+}
+
+func (n *LambdaNode) String() string {
+	return fmt.Sprintf("lambda node with arity %d", len(n.Args))
+}

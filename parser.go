@@ -109,6 +109,9 @@ func (p *parser) parseCall() Node {
 
 	case "begin":
 		return p.parseBegin()
+
+	case "lambda":
+		return p.parseLambda()
 	}
 
 	c := &CallNode{
@@ -181,7 +184,7 @@ func (p *parser) parseString() Node {
 
 func (p *parser) parseDefine() Node {
 	p.expect(itemCall, "define")
-	name := p.parseVar()
+	name := p.parseVar(false)
 	init := p.parseExpression()
 	p.expect(itemRightParen, "define")
 
@@ -193,7 +196,7 @@ func (p *parser) parseDefine() Node {
 
 func (p *parser) parseSet() Node {
 	p.expect(itemCall, "set")
-	name := p.parseVar()
+	name := p.parseVar(false)
 	init := p.parseExpression()
 	p.expect(itemRightParen, "set")
 
@@ -203,9 +206,17 @@ func (p *parser) parseSet() Node {
 	}
 }
 
-func (p *parser) parseVar() Node {
-	item := p.expect(itemVar, "var")
-	return &VarNode{Name: item.value}
+func (p *parser) parseVar(acceptCall bool) Node {
+	var name string
+	if acceptCall && p.peek().t == itemCall {
+		item := p.expect(itemCall, "var")
+		name = item.value
+	} else {
+		item := p.expect(itemVar, "var")
+		name = item.value
+	}
+
+	return &VarNode{Name: name}
 }
 
 func (p *parser) parseIf() Node {
@@ -246,7 +257,7 @@ func (p *parser) parseExpression() Node {
 		return p.parseBool()
 
 	case itemVar:
-		return p.parseVar()
+		return p.parseVar(false)
 
 	default:
 		p.errorf("cannot use this kind of value as a expression: %s", item)
@@ -274,4 +285,35 @@ func (p *parser) parseBegin() Node {
 	}
 
 	return &BeginNode{Nodes: nodes}
+}
+
+func (p *parser) parseLambda() Node {
+	p.expect(itemCall, "lambda")
+
+	// Read the arguments list
+	p.expect(itemLeftParen, "lambda")
+
+	args := make([]Node, 0)
+	for {
+		item := p.peek()
+		if item.t == itemEOF {
+			p.errorf("unexpected EOF while reading the lambda arguments")
+		}
+		if item.t == itemRightParen {
+			break
+		}
+
+		args = append(args, p.parseVar(true))
+	}
+	p.expect(itemRightParen, "lambda")
+
+	// Read the body of the function
+	body := p.parseCall()
+
+	p.expect(itemRightParen, "lambda")
+
+	return &LambdaNode{
+		Args: args,
+		Body: body,
+	}
 }
